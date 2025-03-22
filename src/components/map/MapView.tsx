@@ -15,6 +15,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// Add this type to help with TypeScript errors
+type ReactLeafletProps = {
+  [key: string]: any;
+};
+
 const MapView: React.FC = () => {
   const { souvenirs, loading } = useSouvenirs();
   const navigate = useNavigate();
@@ -56,7 +61,7 @@ const MapView: React.FC = () => {
     );
   }
 
-  // For react-leaflet v5
+  // Get center coordinates for the map
   const center = getMapCenter();
 
   return (
@@ -70,15 +75,15 @@ const MapView: React.FC = () => {
       ) : (
         <Card className="flex-1 overflow-hidden">
           <div style={{ height: '100%', width: '100%' }}>
+            {/* @ts-ignore - react-leaflet v5 type mismatch */}
             <MapContainer
               style={{ height: '100%', width: '100%' }}
+              center={center}
               zoom={2}
               scrollWheelZoom={true}
-              // @ts-ignore - This is a valid prop but types are wrong in v5
-              center={center}
             >
+              {/* @ts-ignore - react-leaflet v5 type mismatch */}
               <TileLayer
-                // @ts-ignore - This is a valid prop but types are wrong in v5
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
