@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Provider } from '@supabase/supabase-js';
@@ -34,69 +33,100 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [initialized, setInitialized] = useState<boolean>(false);
 
   const formatUser = async (supabaseUser: User | null): Promise<AuthUser | null> => {
     if (!supabaseUser) return null;
     
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('name, photo_url')
-      .eq('id', supabaseUser.id)
-      .single();
-    
-    return {
-      id: supabaseUser.id,
-      email: supabaseUser.email || '',
-      name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name,
-      photoUrl: profile?.photo_url || supabaseUser.user_metadata?.avatar_url,
-    };
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, photo_url')
+        .eq('id', supabaseUser.id)
+        .single();
+      
+      return {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: profile?.name || supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name,
+        photoUrl: profile?.photo_url || supabaseUser.user_metadata?.avatar_url,
+      };
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      return {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name,
+        photoUrl: supabaseUser.user_metadata?.avatar_url,
+      };
+    }
   };
 
   useEffect(() => {
+    console.log('AuthProvider: Initializing auth state');
+    let mounted = true;
+    
     const initAuth = async () => {
-      setLoading(true);
-      
       try {
-        // First set up the auth state change listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-          console.log('Auth state changed:', event);
-          
-          if (session) {
-            const formattedUser = await formatUser(session.user);
+        console.log('AuthProvider: Checking for existing session');
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          if (sessionData?.session) {
+            console.log('AuthProvider: Found existing session, formatting user');
+            const formattedUser = await formatUser(sessionData.session.user);
             setUser(formattedUser);
+            console.log('AuthProvider: User state updated with session data');
           } else {
+            console.log('AuthProvider: No session found, clearing user state');
             setUser(null);
           }
           
-          // Important: Only set loading to false after we've processed the auth state change
           setLoading(false);
-        });
-        
-        // Then check for existing session
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          console.log('Found existing session');
-          const formattedUser = await formatUser(session.user);
-          setUser(formattedUser);
-        } else {
-          console.log('No session found');
-          setUser(null);
+          setInitialized(true);
+          console.log('AuthProvider: Initial loading state set to false');
         }
         
-        // Set loading to false after initial session check
-        setLoading(false);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth state changed:', event);
+          
+          if (mounted) {
+            if (session) {
+              console.log('AuthProvider: Session available in auth change, formatting user');
+              const formattedUser = await formatUser(session.user);
+              setUser(formattedUser);
+            } else {
+              console.log('AuthProvider: No session in auth change, clearing user');
+              setUser(null);
+            }
+            
+            if (loading) {
+              setLoading(false);
+              console.log('AuthProvider: Auth change - loading set to false');
+            }
+          }
+        });
         
         return () => {
+          mounted = false;
           subscription.unsubscribe();
         };
       } catch (error) {
         console.error('Auth initialization error:', error);
-        setLoading(false);
+        if (mounted) {
+          setUser(null);
+          setLoading(false);
+          setInitialized(true);
+          console.log('AuthProvider: Error occurred, setting loading to false');
+        }
       }
     };
     
     initAuth();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -233,5 +263,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     instagramSignIn,
   };
 
+  console.log('AuthProvider: Current state:', { user: !!user, loading, initialized });
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
