@@ -1,5 +1,8 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
+import { toast } from '@/components/ui/use-toast';
 
 export type Location = {
   country: string;
@@ -54,7 +57,41 @@ export const useSouvenirs = () => {
   return context;
 };
 
-// Mock data
+// Convert database souvenir to our Souvenir type
+const mapDbSouvenirToSouvenir = (dbSouvenir: any): Souvenir => {
+  return {
+    id: dbSouvenir.id,
+    userId: dbSouvenir.user_id,
+    name: dbSouvenir.name,
+    images: dbSouvenir.images || [],
+    location: {
+      country: dbSouvenir.country,
+      city: dbSouvenir.city,
+      latitude: dbSouvenir.latitude,
+      longitude: dbSouvenir.longitude,
+    },
+    dateAcquired: dbSouvenir.date_acquired,
+    categories: dbSouvenir.categories || [],
+    notes: dbSouvenir.notes || '',
+    tripId: dbSouvenir.trip_id,
+  };
+};
+
+// Convert database trip to our Trip type
+const mapDbTripToTrip = (dbTrip: any): Trip => {
+  return {
+    id: dbTrip.id,
+    userId: dbTrip.user_id,
+    name: dbTrip.name,
+    dateRange: {
+      start: dbTrip.start_date,
+      end: dbTrip.end_date,
+    },
+    coverImage: dbTrip.cover_image,
+  };
+};
+
+// Fallback mock data to use when not authenticated
 const mockSouvenirs: Souvenir[] = [
   {
     id: '1',
@@ -152,49 +189,209 @@ const mockTrips: Trip[] = [
 ];
 
 export const SouvenirProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
   const [souvenirs, setSouvenirs] = useState<Souvenir[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Load mock data
+  // Load data from Supabase when authenticated
   useEffect(() => {
-    const storedSouvenirs = localStorage.getItem('souvenirs');
-    const storedTrips = localStorage.getItem('trips');
-    
-    setSouvenirs(storedSouvenirs ? JSON.parse(storedSouvenirs) : mockSouvenirs);
-    setTrips(storedTrips ? JSON.parse(storedTrips) : mockTrips);
-    
-    setLoading(false);
-  }, []);
-
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem('souvenirs', JSON.stringify(souvenirs));
-      localStorage.setItem('trips', JSON.stringify(trips));
-    }
-  }, [souvenirs, trips, loading]);
-
-  const addSouvenir = async (souvenir: Omit<Souvenir, 'id' | 'userId'>) => {
-    const newSouvenir: Souvenir = {
-      ...souvenir,
-      id: Date.now().toString(),
-      userId: '123', // In a real app, this would be the current user's ID
+    const fetchData = async () => {
+      setLoading(true);
+      
+      if (!user) {
+        // Use mock data when not authenticated
+        setSouvenirs(mockSouvenirs);
+        setTrips(mockTrips);
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        // Fetch souvenirs
+        const { data: dbSouvenirs, error: souvenirError } = await supabase
+          .from('souvenirs')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (souvenirError) throw souvenirError;
+        
+        // Fetch trips
+        const { data: dbTrips, error: tripError } = await supabase
+          .from('trips')
+          .select('*')
+          .order('start_date', { ascending: false });
+        
+        if (tripError) throw tripError;
+        
+        // Map database data to our types
+        setSouvenirs(dbSouvenirs.map(mapDbSouvenirToSouvenir));
+        setTrips(dbTrips.map(mapDbTripToTrip));
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        toast({
+          title: "Failed to load data",
+          description: "Please try again later",
+          variant: "destructive",
+        });
+        
+        // Use mock data as fallback
+        setSouvenirs(mockSouvenirs);
+        setTrips(mockTrips);
+      } finally {
+        setLoading(false);
+      }
     };
     
-    setSouvenirs([...souvenirs, newSouvenir]);
+    fetchData();
+  }, [user]);
+
+  const addSouvenir = async (souvenir: Omit<Souvenir, 'id' | 'userId'>) => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to add souvenirs",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Prepare data for database
+      const dbSouvenir = {
+        user_id: user.id,
+        name: souvenir.name,
+        images: souvenir.images,
+        country: souvenir.location.country,
+        city: souvenir.location.city,
+        latitude: souvenir.location.latitude,
+        longitude: souvenir.location.longitude,
+        date_acquired: souvenir.dateAcquired,
+        categories: souvenir.categories,
+        notes: souvenir.notes,
+        trip_id: souvenir.tripId,
+      };
+      
+      const { data, error } = await supabase
+        .from('souvenirs')
+        .insert(dbSouvenir)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Add new souvenir to state
+      setSouvenirs(prev => [mapDbSouvenirToSouvenir(data), ...prev]);
+      
+      toast({
+        title: "Souvenir added",
+        description: "Your souvenir has been saved successfully",
+      });
+    } catch (error: any) {
+      console.error('Error adding souvenir:', error);
+      toast({
+        title: "Failed to add souvenir",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   const updateSouvenir = async (id: string, updates: Partial<Souvenir>) => {
-    setSouvenirs(
-      souvenirs.map((souvenir) =>
-        souvenir.id === id ? { ...souvenir, ...updates } : souvenir
-      )
-    );
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to update souvenirs",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Prepare data for database
+      const dbUpdates: any = {};
+      
+      if (updates.name) dbUpdates.name = updates.name;
+      if (updates.images) dbUpdates.images = updates.images;
+      if (updates.location) {
+        dbUpdates.country = updates.location.country;
+        dbUpdates.city = updates.location.city;
+        dbUpdates.latitude = updates.location.latitude;
+        dbUpdates.longitude = updates.location.longitude;
+      }
+      if (updates.dateAcquired) dbUpdates.date_acquired = updates.dateAcquired;
+      if (updates.categories) dbUpdates.categories = updates.categories;
+      if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+      if ('tripId' in updates) dbUpdates.trip_id = updates.tripId;
+      
+      dbUpdates.updated_at = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('souvenirs')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Update souvenir in state
+      setSouvenirs(prev => 
+        prev.map(souvenir => 
+          souvenir.id === id ? mapDbSouvenirToSouvenir(data) : souvenir
+        )
+      );
+      
+      toast({
+        title: "Souvenir updated",
+        description: "Your changes have been saved",
+      });
+    } catch (error: any) {
+      console.error('Error updating souvenir:', error);
+      toast({
+        title: "Failed to update souvenir",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   const deleteSouvenir = async (id: string) => {
-    setSouvenirs(souvenirs.filter((souvenir) => souvenir.id !== id));
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to delete souvenirs",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('souvenirs')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Remove souvenir from state
+      setSouvenirs(prev => prev.filter(souvenir => souvenir.id !== id));
+      
+      toast({
+        title: "Souvenir deleted",
+        description: "The souvenir has been removed from your collection",
+      });
+    } catch (error: any) {
+      console.error('Error deleting souvenir:', error);
+      toast({
+        title: "Failed to delete souvenir",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   const getSouvenirById = (id: string) => {
@@ -202,25 +399,139 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const addTrip = async (trip: Omit<Trip, 'id' | 'userId'>) => {
-    const newTrip: Trip = {
-      ...trip,
-      id: Date.now().toString(),
-      userId: '123', // In a real app, this would be the current user's ID
-    };
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to add trips",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    setTrips([...trips, newTrip]);
+    try {
+      // Prepare data for database
+      const dbTrip = {
+        user_id: user.id,
+        name: trip.name,
+        start_date: trip.dateRange.start,
+        end_date: trip.dateRange.end,
+        cover_image: trip.coverImage,
+      };
+      
+      const { data, error } = await supabase
+        .from('trips')
+        .insert(dbTrip)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Add new trip to state
+      setTrips(prev => [mapDbTripToTrip(data), ...prev]);
+      
+      toast({
+        title: "Trip added",
+        description: "Your trip has been saved successfully",
+      });
+    } catch (error: any) {
+      console.error('Error adding trip:', error);
+      toast({
+        title: "Failed to add trip",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   const updateTrip = async (id: string, updates: Partial<Trip>) => {
-    setTrips(
-      trips.map((trip) =>
-        trip.id === id ? { ...trip, ...updates } : trip
-      )
-    );
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to update trips",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Prepare data for database
+      const dbUpdates: any = {};
+      
+      if (updates.name) dbUpdates.name = updates.name;
+      if (updates.dateRange) {
+        if (updates.dateRange.start) dbUpdates.start_date = updates.dateRange.start;
+        if (updates.dateRange.end) dbUpdates.end_date = updates.dateRange.end;
+      }
+      if ('coverImage' in updates) dbUpdates.cover_image = updates.coverImage;
+      
+      dbUpdates.updated_at = new Date().toISOString();
+      
+      const { data, error } = await supabase
+        .from('trips')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Update trip in state
+      setTrips(prev => 
+        prev.map(trip => 
+          trip.id === id ? mapDbTripToTrip(data) : trip
+        )
+      );
+      
+      toast({
+        title: "Trip updated",
+        description: "Your changes have been saved",
+      });
+    } catch (error: any) {
+      console.error('Error updating trip:', error);
+      toast({
+        title: "Failed to update trip",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   const deleteTrip = async (id: string) => {
-    setTrips(trips.filter((trip) => trip.id !== id));
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to delete trips",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      // Remove trip from state
+      setTrips(prev => prev.filter(trip => trip.id !== id));
+      
+      toast({
+        title: "Trip deleted",
+        description: "The trip has been removed from your collection",
+      });
+    } catch (error: any) {
+      console.error('Error deleting trip:', error);
+      toast({
+        title: "Failed to delete trip",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      throw error;
+    }
   };
 
   const value = {
