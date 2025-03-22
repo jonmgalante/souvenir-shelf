@@ -92,7 +92,7 @@ const AddSouvenir: React.FC = () => {
       await addSouvenir({
         name,
         location,
-        date_acquired: date.toISOString(),
+        dateAcquired: date.toISOString(), // Changed from date_acquired to dateAcquired
         categories: selectedCategories.length > 0 ? selectedCategories : ['Other'],
         notes,
         images
