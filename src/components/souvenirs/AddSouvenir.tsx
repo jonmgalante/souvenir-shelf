@@ -252,14 +252,24 @@ const AddSouvenir: React.FC = () => {
           />
         </div>
         
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={submitting}
-        >
-          {submitting ? 'Adding...' : 'Add to Collection'}
-        </Button>
+        {/* Submit Buttons */}
+        <div className="flex gap-3">
+          <Button
+            type="submit"
+            className="flex-1"
+            disabled={submitting}
+          >
+            {submitting ? 'Adding...' : 'Add to Collection'}
+          </Button>
+          <Button
+            type="button"
+            className="flex-1"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
+            {submitting ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
       </form>
       
       {/* Date picker popover */}
