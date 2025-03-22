@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs, Souvenir } from '../../context/SouvenirContext';
@@ -79,6 +80,19 @@ const SouvenirGrid: React.FC = () => {
            filters.category !== '' || 
            filters.searchTerm !== '';
   };
+
+  // Skeletons for loading state
+  const renderSkeletons = () => (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="space-y-2">
+          <div className="aspect-square bg-gray-100 animate-pulse"></div>
+          <div className="h-4 bg-gray-100 animate-pulse"></div>
+          <div className="h-3 bg-gray-100 animate-pulse w-2/3"></div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -172,15 +186,7 @@ const SouvenirGrid: React.FC = () => {
       
       {/* Grid of Souvenirs */}
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div className="aspect-square bg-gray-100 animate-pulse"></div>
-              <div className="h-4 bg-gray-100 animate-pulse"></div>
-              <div className="h-3 bg-gray-100 animate-pulse w-2/3"></div>
-            </div>
-          ))}
-        </div>
+        renderSkeletons()
       ) : filteredSouvenirs.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {filteredSouvenirs.map((souvenir) => (
