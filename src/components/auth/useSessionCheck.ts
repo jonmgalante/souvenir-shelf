@@ -9,6 +9,7 @@ const useSessionCheck = () => {
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
+      console.log('Session check:', data.session ? 'Session found' : 'No session');
       if (data.session) {
         navigate('/collection');
       }
@@ -18,6 +19,7 @@ const useSessionCheck = () => {
     
     // Listen for auth state changes
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event);
       if (event === 'SIGNED_IN' && session) {
         navigate('/collection');
       }

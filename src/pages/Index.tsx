@@ -10,6 +10,8 @@ const Index: React.FC = () => {
   const { souvenirs } = useSouvenirs();
   const { user, loading } = useAuth();
   
+  console.log('Index page - Auth state:', { user: !!user, loading });
+  
   // If loading, show a simple loading state
   if (loading) {
     return (
@@ -21,10 +23,12 @@ const Index: React.FC = () => {
 
   // If not authenticated, redirect to auth page
   if (!user) {
+    console.log('Index - No user, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
   // If authenticated, show the welcome screen
+  console.log('Index - User authenticated, showing welcome screen');
   return (
     <Layout hideNav={false}>
       <WelcomeScreen />

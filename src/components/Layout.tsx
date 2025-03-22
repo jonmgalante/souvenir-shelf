@@ -32,10 +32,10 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
     if (!loading && user && isAuthPage) {
       navigate('/collection');
     }
-  }, [user, loading, isAuthPage, navigate, location.pathname]);
+  }, [user, loading, isAuthPage, navigate]);
 
-  // Show loading state only if we're actually checking authentication
-  // and not on the auth page
+  // Only show loading if we're still checking authentication
+  // and we're not on the auth page and it hasn't been loaded before
   if (loading && !isAuthPage) {
     return (
       <div className="min-h-screen flex items-center justify-center">
