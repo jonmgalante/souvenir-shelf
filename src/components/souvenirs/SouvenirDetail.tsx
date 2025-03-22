@@ -2,14 +2,25 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
-import { Map, Calendar, ArrowLeft, Tag, Share2, Edit, MapPin } from 'lucide-react';
+import { Map, Calendar, ArrowLeft, Tag, Share2, Edit, MapPin, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
+import { Location } from '../../types/souvenir';
 
 const SouvenirDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getSouvenirById } = useSouvenirs();
+  const { getSouvenirById, deleteSouvenir, updateSouvenir } = useSouvenirs();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  
+  // Edit form state
+  const [editName, setEditName] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [editCategories, setEditCategories] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const souvenir = getSouvenirById(id || '');
   
@@ -23,6 +34,55 @@ const SouvenirDetail: React.FC = () => {
   
   const { name, images, location, dateAcquired, categories, notes } = souvenir;
   
+  // Initialize edit form state with current values
+  const openEditDialog = () => {
+    setEditName(name);
+    setEditNotes(notes || '');
+    setEditCategories([...categories]);
+    setIsEditDialogOpen(true);
+  };
+  
+  const handleDeleteConfirm = async () => {
+    try {
+      setIsSubmitting(true);
+      await deleteSouvenir(id || '');
+      navigate('/collection');
+    } catch (error) {
+      console.error('Error deleting souvenir:', error);
+    } finally {
+      setIsSubmitting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+  
+  const handleUpdateSouvenir = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editName.trim()) return;
+    
+    try {
+      setIsSubmitting(true);
+      await updateSouvenir(id || '', {
+        name: editName,
+        notes: editNotes,
+        categories: editCategories.length > 0 ? editCategories : ['Other'],
+      });
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error('Error updating souvenir:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleCategoryToggle = (category: string) => {
+    setEditCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+  
   const handleNextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
@@ -32,6 +92,12 @@ const SouvenirDetail: React.FC = () => {
   };
   
   const formattedDate = format(new Date(dateAcquired), 'MMMM d, yyyy');
+  
+  // Available categories
+  const allCategories = [
+    'Handcrafted', 'Food', 'Clothing', 'Art', 'Jewelry', 
+    'Antique', 'Technology', 'Book', 'Toy', 'Decoration', 'Other'
+  ];
   
   return (
     <div className="souvenir-container pb-20 animate-fade-in">
@@ -52,10 +118,18 @@ const SouvenirDetail: React.FC = () => {
             <Share2 className="h-5 w-5" />
           </button>
           <button
+            onClick={openEditDialog}
             className="p-2 rounded-full hover:bg-secondary transition-colors"
             aria-label="Edit souvenir"
           >
             <Edit className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="p-2 rounded-full hover:bg-secondary transition-colors text-destructive"
+            aria-label="Delete souvenir"
+          >
+            <Trash2 className="h-5 w-5" />
           </button>
         </div>
       </div>
@@ -145,6 +219,112 @@ const SouvenirDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Souvenir</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this souvenir? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteConfirm}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Souvenir</DialogTitle>
+          </DialogHeader>
+          
+          <form onSubmit={handleUpdateSouvenir} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="edit-name" className="block text-sm font-medium">
+                Name
+              </label>
+              <input
+                type="text"
+                id="edit-name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md"
+                placeholder="Souvenir name"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">
+                Categories
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {allCategories.map((category) => (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => handleCategoryToggle(category)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      editCategories.includes(category)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-secondary-foreground'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="edit-notes" className="block text-sm font-medium">
+                Notes
+              </label>
+              <textarea
+                id="edit-notes"
+                value={editNotes}
+                onChange={(e) => setEditNotes(e.target.value)}
+                className="w-full px-3 py-2 border rounded-md min-h-[100px]"
+                placeholder="Any special memories or details?"
+              />
+            </div>
+            
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsEditDialogOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                disabled={isSubmitting || !editName.trim()}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
