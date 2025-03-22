@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSouvenirs } from '../../context/SouvenirContext';
+import { useSouvenirs } from '../../context/souvenir';
 import { Location } from '../../types/souvenir';
 import { Trip } from '../../types/trip';
 import { Map, Calendar, Camera, X, ChevronDown, Check, MapPin } from 'lucide-react';

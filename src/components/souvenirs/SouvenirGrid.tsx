@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSouvenirs, Souvenir } from '../../context/SouvenirContext';
+import { useSouvenirs, Souvenir } from '../../context/souvenir';
 import { Filter, Search, Grid3X3, Plus } from 'lucide-react';
 import { Button } from '../ui/button';
 

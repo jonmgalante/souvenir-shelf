@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSouvenirs } from '../../context/SouvenirContext';
+import { useSouvenirs } from '../../context/souvenir';
 import { Map, Calendar, ArrowLeft, Tag, Share2, Edit, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 

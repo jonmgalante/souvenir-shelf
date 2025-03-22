@@ -1,47 +1,23 @@
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useAuth } from './AuthContext';
+import React, { createContext, useState, useEffect } from 'react';
+import { useAuth } from '../AuthContext';
 import { toast } from '@/components/ui/use-toast';
-import { Souvenir } from '../types/souvenir';
-import { Trip } from '../types/trip';
-import { mockSouvenirs, mockTrips } from '../data/mockData';
-import { 
-  fetchSouvenirs, 
-  addSouvenir as addSouvenirService, 
-  updateSouvenir as updateSouvenirService,
-  deleteSouvenir as deleteSouvenirService
-} from '../services/souvenirService';
+import { Souvenir } from '../../types/souvenir';
+import { Trip } from '../../types/trip';
+import { mockSouvenirs, mockTrips } from '../../data/mockData';
+import { SouvenirContextType } from './types';
 import {
-  fetchTrips,
-  addTrip as addTripService,
-  updateTrip as updateTripService,
-  deleteTrip as deleteTripService
-} from '../services/tripService';
+  loadSouvenirs,
+  loadTrips,
+  addSouvenirAction,
+  updateSouvenirAction,
+  deleteSouvenirAction,
+  addTripAction,
+  updateTripAction,
+  deleteTripAction
+} from './souvenirActions';
 
-type SouvenirContextType = {
-  souvenirs: Souvenir[];
-  trips: Trip[];
-  loading: boolean;
-  addSouvenir: (souvenir: Omit<Souvenir, 'id' | 'userId'>) => Promise<void>;
-  updateSouvenir: (id: string, updates: Partial<Souvenir>) => Promise<void>;
-  deleteSouvenir: (id: string) => Promise<void>;
-  getSouvenirById: (id: string) => Souvenir | undefined;
-  addTrip: (trip: Omit<Trip, 'id' | 'userId'>) => Promise<void>;
-  updateTrip: (id: string, updates: Partial<Trip>) => Promise<void>;
-  deleteTrip: (id: string) => Promise<void>;
-};
-
-const SouvenirContext = createContext<SouvenirContextType | undefined>(undefined);
-
-export const useSouvenirs = () => {
-  const context = useContext(SouvenirContext);
-  if (context === undefined) {
-    throw new Error('useSouvenirs must be used within a SouvenirProvider');
-  }
-  return context;
-};
-
-export { type Souvenir, type Trip };
+export const SouvenirContext = createContext<SouvenirContextType | undefined>(undefined);
 
 export const SouvenirProvider = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
@@ -71,8 +47,8 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
         console.log('Fetching data for user:', user.id);
         // Fetch souvenirs and trips
         const [fetchedSouvenirs, fetchedTrips] = await Promise.all([
-          fetchSouvenirs(),
-          fetchTrips()
+          loadSouvenirs(user.id),
+          loadTrips(user.id)
         ]);
         
         setSouvenirs(fetchedSouvenirs);
@@ -112,16 +88,10 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
     }
     
     try {
-      const newSouvenir = await addSouvenirService(user.id, souvenir);
+      const newSouvenir = await addSouvenirAction(user.id, souvenir);
       // Add new souvenir to state
       setSouvenirs(prev => [newSouvenir, ...prev]);
-    } catch (error: any) {
-      console.error('Error adding souvenir:', error);
-      toast({
-        title: "Failed to add souvenir",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+    } catch (error) {
       throw error;
     }
   };
@@ -137,20 +107,14 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
     }
     
     try {
-      const updatedSouvenir = await updateSouvenirService(id, updates);
+      const updatedSouvenir = await updateSouvenirAction(id, updates);
       // Update souvenir in state
       setSouvenirs(prev => 
         prev.map(souvenir => 
           souvenir.id === id ? updatedSouvenir : souvenir
         )
       );
-    } catch (error: any) {
-      console.error('Error updating souvenir:', error);
-      toast({
-        title: "Failed to update souvenir",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+    } catch (error) {
       throw error;
     }
   };
@@ -166,16 +130,10 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
     }
     
     try {
-      await deleteSouvenirService(id);
+      await deleteSouvenirAction(id);
       // Remove souvenir from state
       setSouvenirs(prev => prev.filter(souvenir => souvenir.id !== id));
-    } catch (error: any) {
-      console.error('Error deleting souvenir:', error);
-      toast({
-        title: "Failed to delete souvenir",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+    } catch (error) {
       throw error;
     }
   };
@@ -195,16 +153,10 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
     }
     
     try {
-      const newTrip = await addTripService(user.id, trip);
+      const newTrip = await addTripAction(user.id, trip);
       // Add new trip to state
       setTrips(prev => [newTrip, ...prev]);
-    } catch (error: any) {
-      console.error('Error adding trip:', error);
-      toast({
-        title: "Failed to add trip",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+    } catch (error) {
       throw error;
     }
   };
@@ -220,20 +172,14 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
     }
     
     try {
-      const updatedTrip = await updateTripService(id, updates);
+      const updatedTrip = await updateTripAction(id, updates);
       // Update trip in state
       setTrips(prev => 
         prev.map(trip => 
           trip.id === id ? updatedTrip : trip
         )
       );
-    } catch (error: any) {
-      console.error('Error updating trip:', error);
-      toast({
-        title: "Failed to update trip",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+    } catch (error) {
       throw error;
     }
   };
@@ -249,16 +195,10 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
     }
     
     try {
-      await deleteTripService(id);
+      await deleteTripAction(id);
       // Remove trip from state
       setTrips(prev => prev.filter(trip => trip.id !== id));
-    } catch (error: any) {
-      console.error('Error deleting trip:', error);
-      toast({
-        title: "Failed to delete trip",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+    } catch (error) {
       throw error;
     }
   };

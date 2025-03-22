@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useSouvenirs } from '../context/SouvenirContext';
+import { useSouvenirs } from '../context/souvenir';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
 import WelcomeScreen from '../components/WelcomeScreen';
