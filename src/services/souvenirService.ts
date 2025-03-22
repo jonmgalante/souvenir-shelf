@@ -10,7 +10,10 @@ export const fetchSouvenirs = async () => {
     .select('*')
     .order('created_at', { ascending: false });
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching souvenirs:', error);
+    throw error;
+  }
   
   return data.map(mapDbSouvenirToSouvenir);
 };
@@ -31,13 +34,25 @@ export const addSouvenir = async (userId: string, souvenir: Omit<Souvenir, 'id' 
     trip_id: souvenir.tripId,
   };
   
+  console.log('Saving souvenir to database:', dbSouvenir);
+  
   const { data, error } = await supabase
     .from('souvenirs')
     .insert(dbSouvenir)
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error adding souvenir:', error);
+    toast({
+      title: "Failed to save souvenir",
+      description: error.message || "Please try again",
+      variant: "destructive",
+    });
+    throw error;
+  }
+  
+  console.log('Souvenir saved successfully:', data);
   
   toast({
     title: "Souvenir added",
@@ -73,7 +88,15 @@ export const updateSouvenir = async (id: string, updates: Partial<Souvenir>) => 
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error updating souvenir:', error);
+    toast({
+      title: "Failed to update souvenir",
+      description: error.message || "Please try again",
+      variant: "destructive",
+    });
+    throw error;
+  }
   
   toast({
     title: "Souvenir updated",
@@ -89,7 +112,15 @@ export const deleteSouvenir = async (id: string) => {
     .delete()
     .eq('id', id);
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error deleting souvenir:', error);
+    toast({
+      title: "Failed to delete souvenir",
+      description: error.message || "Please try again",
+      variant: "destructive",
+    });
+    throw error;
+  }
   
   toast({
     title: "Souvenir deleted",
