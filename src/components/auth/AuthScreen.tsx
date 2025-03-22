@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, LogIn } from 'lucide-react';
@@ -40,12 +39,10 @@ const AuthScreen: React.FC = () => {
       <div className="flex flex-col flex-1 justify-center items-center">
         <div className="w-full max-w-md px-6 py-8 glass-card rounded-3xl">
           <h1 className="text-3xl font-serif font-medium text-center mb-2">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            Souvenir Shelf
           </h1>
           <p className="text-muted-foreground text-center mb-8">
-            {isLogin 
-              ? 'Sign in to access your personal souvenir collection' 
-              : 'Join Souvenir Shelf to start cataloging your travel memories'}
+            Your personal museum from a life well-traveled
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
