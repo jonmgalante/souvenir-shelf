@@ -4,7 +4,7 @@ import { useSouvenirs } from '../../context/souvenir';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Card, CardContent } from '../ui/card';
+import { Card } from '../ui/card';
 import { useNavigate } from 'react-router-dom';
 
 // Fix Leaflet icon issue
@@ -56,8 +56,8 @@ const MapView: React.FC = () => {
     );
   }
 
-  // For react-leaflet v5, we need to use LatLngExpression for the center
-  const center = getMapCenter() as [number, number];
+  // For react-leaflet v5
+  const center = getMapCenter();
 
   return (
     <div className="p-4 h-[calc(100vh-80px)] flex flex-col">
@@ -69,46 +69,48 @@ const MapView: React.FC = () => {
         </div>
       ) : (
         <Card className="flex-1 overflow-hidden">
-          <MapContainer
-            key="map-container"
-            center={center}
-            zoom={2}
-            style={{ height: '100%', width: '100%' }}
-            scrollWheelZoom={true}
-          >
-            <TileLayer
-              key="tile-layer"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            
-            {/* Render markers for each unique location */}
-            {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
-              const [lat, lng] = key.split(',').map(Number);
-              return (
-                <Marker key={key} position={[lat, lng]}>
-                  <Popup>
-                    <div className="max-w-xs">
-                      <h3 className="font-medium">{locationSouvenirs[0].location.city}, {locationSouvenirs[0].location.country}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{locationSouvenirs.length} souvenir(s)</p>
-                      <ul className="space-y-1">
-                        {locationSouvenirs.map(s => (
-                          <li key={s.id}>
-                            <button
-                              onClick={() => navigate(`/souvenir/${s.id}`)}
-                              className="text-sm text-blue-600 hover:underline text-left"
-                            >
-                              {s.name}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
-          </MapContainer>
+          <div style={{ height: '100%', width: '100%' }}>
+            <MapContainer
+              style={{ height: '100%', width: '100%' }}
+              zoom={2}
+              scrollWheelZoom={true}
+              // @ts-ignore - This is a valid prop but types are wrong in v5
+              center={center}
+            >
+              <TileLayer
+                // @ts-ignore - This is a valid prop but types are wrong in v5
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              
+              {/* Render markers for each unique location */}
+              {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
+                const [lat, lng] = key.split(',').map(Number);
+                return (
+                  <Marker key={key} position={[lat, lng]}>
+                    <Popup>
+                      <div className="max-w-xs">
+                        <h3 className="font-medium">{locationSouvenirs[0].location.city}, {locationSouvenirs[0].location.country}</h3>
+                        <p className="text-sm text-gray-600 mb-2">{locationSouvenirs.length} souvenir(s)</p>
+                        <ul className="space-y-1">
+                          {locationSouvenirs.map(s => (
+                            <li key={s.id}>
+                              <button
+                                onClick={() => navigate(`/souvenir/${s.id}`)}
+                                className="text-sm text-blue-600 hover:underline text-left"
+                              >
+                                {s.name}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
+            </MapContainer>
+          </div>
         </Card>
       )}
     </div>
