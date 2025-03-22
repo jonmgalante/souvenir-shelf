@@ -1,10 +1,13 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Map, Grid, FolderPlus, User } from 'lucide-react';
+import { Map, Grid, FolderPlus, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import LogoutButton from './auth/LogoutButton';
 
 const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -47,6 +50,14 @@ const WelcomeScreen: React.FC = () => {
               <span className="font-medium">Your Profile</span>
               <User className="h-5 w-5" />
             </button>
+
+            {user && (
+              <LogoutButton 
+                variant="outline" 
+                className="w-full flex items-center justify-between px-4 py-3" 
+                showIcon={true}
+              />
+            )}
           </div>
         </div>
       </div>
