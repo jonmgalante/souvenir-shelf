@@ -197,7 +197,7 @@ const AuthScreen: React.FC = () => {
       </div>
       
       <footer className="mt-8 mb-2 text-center text-sm text-muted-foreground">
-        <p>Sign in to access your souvenir collection</p>
+        {/* Footer content removed as requested */}
       </footer>
     </div>
   );
