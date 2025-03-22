@@ -83,7 +83,15 @@ const Index: React.FC = () => {
             {souvenirs.map((souvenir) => (
               <div key={souvenir.id} className="space-y-2" onClick={() => navigate(`/souvenir/${souvenir.id}`)}>
                 <div className="aspect-square bg-gray-100 flex items-center justify-center rounded-none overflow-hidden">
-                  <Grid3X3 className="w-6 h-6 text-gray-400" />
+                  {souvenir.images && souvenir.images.length > 0 ? (
+                    <img 
+                      src={souvenir.images[0]} 
+                      alt={souvenir.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Grid3X3 className="w-6 h-6 text-gray-400" />
+                  )}
                 </div>
                 <div>
                   <h3 className="font-medium text-sm">{souvenir.name}</h3>
