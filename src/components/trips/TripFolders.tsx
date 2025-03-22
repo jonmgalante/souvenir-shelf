@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip } from '../../context/SouvenirContext';
 import { FolderPlus, Calendar, Plus, X } from 'lucide-react';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 
 const TripFolders: React.FC = () => {
   const { trips, souvenirs, addTrip } = useSouvenirs();
@@ -14,12 +13,10 @@ const TripFolders: React.FC = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
-  // Count souvenirs per trip
   const getSouvenirCount = (tripId: string) => {
     return souvenirs.filter(s => s.tripId === tripId).length;
   };
   
-  // Handle adding a new trip
   const handleAddTrip = async () => {
     if (!newTripName.trim() || !startDate || !endDate) {
       return;
@@ -34,7 +31,6 @@ const TripFolders: React.FC = () => {
       coverImage: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1000&auto=format&fit=crop',
     });
     
-    // Reset form
     setNewTripName('');
     setStartDate('');
     setEndDate('');
@@ -55,7 +51,6 @@ const TripFolders: React.FC = () => {
         </button>
       </div>
       
-      {/* Add Trip Form */}
       {showAddTrip && (
         <div className="mb-6 bg-secondary/50 p-4 rounded-lg animate-scale-in">
           <h2 className="text-lg font-medium mb-3">New Trip</h2>
@@ -109,7 +104,6 @@ const TripFolders: React.FC = () => {
         </div>
       )}
       
-      {/* Trip Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {trips.map((trip) => (
           <TripCard
