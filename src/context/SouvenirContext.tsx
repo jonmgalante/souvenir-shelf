@@ -123,7 +123,7 @@ const mockSouvenirs: Souvenir[] = [
     },
     dateAcquired: '2022-08-12',
     categories: ['Textiles', 'Handmade'],
-    notes: 'Purchased from a women's weaving cooperative in the Sacred Valley. The colors are all natural dyes from local plants.',
+    notes: 'Purchased from a women\'s weaving cooperative in the Sacred Valley. The colors are all natural dyes from local plants.',
     tripId: '2',
   },
 ];
