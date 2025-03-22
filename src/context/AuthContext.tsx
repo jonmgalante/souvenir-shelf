@@ -1,7 +1,6 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
+import { User, Provider } from '@supabase/supabase-js';
 import { toast } from '@/components/ui/use-toast';
 
 type AuthUser = {
@@ -35,11 +34,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Convert Supabase User to our AuthUser type
   const formatUser = async (supabaseUser: User | null): Promise<AuthUser | null> => {
     if (!supabaseUser) return null;
     
-    // Get user profile from our profiles table
     const { data: profile } = await supabase
       .from('profiles')
       .select('name, photo_url')
@@ -54,7 +51,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   };
 
-  // Check for existing session on load
   useEffect(() => {
     const getSession = async () => {
       setLoading(true);
@@ -71,7 +67,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     getSession();
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event);
       const formattedUser = await formatUser(session?.user || null);
@@ -83,7 +78,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
-  // Email/password sign in
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -110,7 +104,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Email/password sign up
   const signUp = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
@@ -145,7 +138,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Sign out
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
@@ -163,7 +155,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Google sign in
   const googleSignIn = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -187,13 +178,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Instagram sign in
   const instagramSignIn = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'instagram',
+        provider: 'facebook',
         options: {
           redirectTo: window.location.origin + '/collection',
+          scopes: 'instagram_basic,instagram_content_publish',
         },
       });
       
@@ -201,10 +192,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw error;
       }
     } catch (error: any) {
-      console.error('Instagram sign in error:', error);
+      console.error('Social sign in error:', error);
       toast({
-        title: "Instagram sign in failed",
-        description: error.message || "An error occurred during Instagram sign in.",
+        title: "Social sign in failed",
+        description: error.message || "An error occurred during sign in.",
         variant: "destructive",
       });
       throw error;
