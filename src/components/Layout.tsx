@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navigation from './Navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -15,28 +15,36 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const isAuthPage = location.pathname === '/auth';
+  const [redirected, setRedirected] = useState(false);
 
   useEffect(() => {
-    // If not loading and no user is logged in and not on auth page, redirect to auth
-    if (!loading && !user && !isAuthPage) {
-      console.log('User not authenticated, redirecting to auth page');
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to access this page",
-        variant: "destructive",
-      });
-      navigate('/auth');
+    // Only redirect if we have a definite auth state (loading is false)
+    if (!loading) {
+      // If not authenticated and not on auth page, redirect to auth
+      if (!user && !isAuthPage && !redirected) {
+        console.log('Layout - User not authenticated, redirecting to auth page');
+        setRedirected(true);
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to access this page",
+          variant: "destructive",
+        });
+        navigate('/auth');
+      }
+      
+      // If authenticated and on auth page, redirect to collection
+      if (user && isAuthPage && !redirected) {
+        console.log('Layout - User authenticated on auth page, redirecting to collection');
+        setRedirected(true);
+        navigate('/collection');
+      }
     }
-    
-    // If user is logged in and on auth page, redirect to collection
-    if (!loading && user && isAuthPage) {
-      navigate('/collection');
-    }
-  }, [user, loading, isAuthPage, navigate]);
+  }, [user, loading, isAuthPage, navigate, redirected]);
 
-  // Only show loading if we're still checking authentication
-  // and we're not on the auth page and it hasn't been loaded before
+  // Show loading state only when checking authentication
+  // and not on the auth page
   if (loading && !isAuthPage) {
+    console.log('Layout - Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Loading authentication...</p>
@@ -44,7 +52,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
     );
   }
 
-  // Don't render content for unauthenticated users (except on auth page)
+  // Don't render content for unauthenticated users except on auth page
   if (!user && !isAuthPage) {
     return null; // The useEffect will handle the redirect
   }

@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Provider } from '@supabase/supabase-js';
@@ -52,30 +53,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    const getSession = async () => {
+    const initAuth = async () => {
       setLoading(true);
+      
       try {
+        // First set up the auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          console.log('Auth state changed:', event);
+          
+          if (session) {
+            const formattedUser = await formatUser(session.user);
+            setUser(formattedUser);
+          } else {
+            setUser(null);
+          }
+          
+          // Important: Only set loading to false after we've processed the auth state change
+          setLoading(false);
+        });
+        
+        // Then check for existing session
         const { data: { session } } = await supabase.auth.getSession();
-        const formattedUser = await formatUser(session?.user || null);
-        setUser(formattedUser);
+        
+        if (session) {
+          console.log('Found existing session');
+          const formattedUser = await formatUser(session.user);
+          setUser(formattedUser);
+        } else {
+          console.log('No session found');
+          setUser(null);
+        }
+        
+        // Set loading to false after initial session check
+        setLoading(false);
+        
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
-        console.error('Error getting session:', error);
-      } finally {
+        console.error('Auth initialization error:', error);
         setLoading(false);
       }
     };
-
-    getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      const formattedUser = await formatUser(session?.user || null);
-      setUser(formattedUser);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    
+    initAuth();
   }, []);
 
   const signIn = async (email: string, password: string) => {
