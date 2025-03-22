@@ -34,8 +34,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
     }
   }, [user, loading, isAuthPage, navigate, location.pathname]);
 
-  // Show loading state while checking authentication
-  if (loading) {
+  // Show loading state only if we're actually checking authentication
+  // and not on the auth page
+  if (loading && !isAuthPage) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Loading authentication...</p>
