@@ -15,10 +15,10 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const isAuthPage = location.pathname === '/auth';
-  const isIndexPage = location.pathname === '/';
 
   useEffect(() => {
-    if (!loading && !user && !isAuthPage && !isIndexPage) {
+    // If not loading and no user is logged in and not on auth page, redirect to auth
+    if (!loading && !user && !isAuthPage) {
       console.log('User not authenticated, redirecting to auth page');
       toast({
         title: "Authentication required",
@@ -27,7 +27,26 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       });
       navigate('/auth');
     }
-  }, [user, loading, isAuthPage, isIndexPage, navigate]);
+    
+    // If user is logged in and on auth page, redirect to collection
+    if (!loading && user && isAuthPage) {
+      navigate('/collection');
+    }
+  }, [user, loading, isAuthPage, navigate, location.pathname]);
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  // Don't render content for unauthenticated users (except on auth page)
+  if (!user && !isAuthPage) {
+    return null; // The useEffect will handle the redirect
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
