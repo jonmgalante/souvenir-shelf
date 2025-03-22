@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSouvenirs, useSouvenirContext, Location, Trip } from '../../context/SouvenirContext';
+import { useSouvenirs, Location, Trip } from '../../context/SouvenirContext';
 import { Map, Calendar, Camera, X, ChevronDown, Check, MapPin } from 'lucide-react';
-import { format, parse } from 'date-fns';
+import { format } from 'date-fns';
 
 // Predefined categories
 const predefinedCategories = [
@@ -363,3 +362,4 @@ const AddSouvenir: React.FC = () => {
 };
 
 export default AddSouvenir;
+
