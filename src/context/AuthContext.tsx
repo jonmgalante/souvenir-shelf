@@ -15,6 +15,7 @@ type AuthContextType = {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   googleSignIn: () => Promise<void>;
+  instagramSignIn: () => Promise<void>; // Add Instagram sign-in
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -94,6 +95,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Add Instagram sign-in method
+  const instagramSignIn = async () => {
+    setLoading(true);
+    try {
+      // This would be a real auth service call with Instagram OAuth
+      const mockUser = { 
+        id: '789', 
+        email: 'instagram@example.com', 
+        name: 'Instagram User',
+        photoUrl: 'https://via.placeholder.com/150'
+      };
+      setUser(mockUser);
+      localStorage.setItem('souvenirUser', JSON.stringify(mockUser));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -101,6 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signOut,
     googleSignIn,
+    instagramSignIn,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
