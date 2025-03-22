@@ -15,11 +15,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Create declarations for react-leaflet components to fix TypeScript errors
+// Create proper type declarations for react-leaflet components to fix TypeScript errors
 declare module 'react-leaflet' {
   export interface MapContainerProps {
-    center?: [number, number];
-    zoom?: number;
+    center: [number, number];
+    zoom: number;
     scrollWheelZoom?: boolean;
     style?: React.CSSProperties;
     className?: string;
@@ -27,7 +27,7 @@ declare module 'react-leaflet' {
   }
 
   export interface TileLayerProps {
-    attribution?: string;
+    attribution: string;
     url: string;
     children?: React.ReactNode;
   }
