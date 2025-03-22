@@ -1,9 +1,7 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
 import { Location } from '../../types/souvenir';
-import { Trip } from '../../types/trip';
 import { Map, Calendar, Camera, X, ChevronDown, Check, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -21,6 +19,7 @@ const AddSouvenir: React.FC = () => {
   // Form state
   const [name, setName] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [location, setLocation] = useState<Location>({
     country: '',
@@ -44,23 +43,22 @@ const AddSouvenir: React.FC = () => {
     
     // Process each file
     Array.from(files).forEach(file => {
+      // Store the actual files for later upload
+      setImageFiles(prev => [...prev, file]);
+      
       // Create URL for preview
       const imageUrl = URL.createObjectURL(file);
       setImageUrls(prev => [...prev, imageUrl]);
       
-      // In a real app, we'd upload to a server and get back URLs
-      // For now, we'll just use the object URLs as placeholders
-      // Normally you'd do:
-      // uploadToServer(file).then(url => setImages(prev => [...prev, url]));
-      
-      // For our mock, we'll use placeholder URLs
-      setImages(prev => [...prev, 'https://images.unsplash.com/photo-1528181304800-259b08848526?q=80&w=1000&auto=format&fit=crop']);
+      // We'll use the same URLs as placeholders until proper image upload is implemented
+      setImages(prev => [...prev, imageUrl]);
     });
   };
   
   const removeImage = (index: number) => {
     setImageUrls(prev => prev.filter((_, i) => i !== index));
     setImages(prev => prev.filter((_, i) => i !== index));
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
   };
   
   const toggleCategory = (category: string) => {
@@ -365,4 +363,3 @@ const AddSouvenir: React.FC = () => {
 };
 
 export default AddSouvenir;
-
