@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
 import { Location } from '../../types/souvenir';
-import { Map, Calendar, ChevronDown } from 'lucide-react';
+import { Map, Calendar, ChevronDown, Save } from 'lucide-react';
 import { format } from 'date-fns';
 
 // Custom Hook
@@ -92,7 +91,7 @@ const AddSouvenir: React.FC = () => {
       await addSouvenir({
         name,
         location,
-        dateAcquired: date.toISOString(), // Changed from date_acquired to dateAcquired
+        dateAcquired: date.toISOString(),
         categories: selectedCategories.length > 0 ? selectedCategories : ['Other'],
         notes,
         images
@@ -116,7 +115,6 @@ const AddSouvenir: React.FC = () => {
     }
   };
   
-  // Location Modal Rendering
   const renderLocationModal = () => {
     if (!showLocationModal) return null;
     
@@ -252,24 +250,15 @@ const AddSouvenir: React.FC = () => {
           />
         </div>
         
-        {/* Submit Buttons */}
-        <div className="flex gap-3">
-          <Button
-            type="submit"
-            className="flex-1"
-            disabled={submitting}
-          >
-            {submitting ? 'Adding...' : 'Add to Collection'}
-          </Button>
-          <Button
-            type="button"
-            className="flex-1"
-            onClick={handleSubmit}
-            disabled={submitting}
-          >
-            {submitting ? 'Saving...' : 'Save'}
-          </Button>
-        </div>
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          className="w-full flex items-center justify-center gap-2"
+          disabled={submitting}
+        >
+          <Save size={18} />
+          {submitting ? 'Adding...' : 'Add to Collection'}
+        </Button>
       </form>
       
       {/* Date picker popover */}
