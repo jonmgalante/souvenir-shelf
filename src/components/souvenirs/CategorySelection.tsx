@@ -13,7 +13,8 @@ const CategorySelection: React.FC<CategorySelectionProps> = ({
 }) => {
   const categories = [
     'Artwork', 'Clothing', 'Jewelry', 'Handicraft',
-    'Magnet', 'Food', 'Drink', 'Postcard', 'Map', 'Other'
+    'Magnet', 'Food', 'Drink', 'Postcard', 'Map', 
+    'Wood', 'Handmade', 'Other'
   ];
 
   return (
