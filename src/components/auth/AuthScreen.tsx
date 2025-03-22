@@ -1,47 +1,106 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowRight, LogIn } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, LogIn, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const AuthScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { signIn, signUp, googleSignIn, instagramSignIn } = useAuth();
 
+  // Check if we have a session on page load
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate('/collection');
+      }
+    };
+    
+    checkSession();
+    
+    // Listen for auth state changes
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        navigate('/collection');
+      }
+    });
+    
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
+    
     try {
       if (isLogin) {
         await signIn(email, password);
       } else {
+        if (!name) {
+          throw new Error('Name is required');
+        }
         await signUp(email, password, name);
       }
       navigate('/collection');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Authentication error:', error);
+      setError(error.message || 'An error occurred during authentication');
+      toast({
+        title: "Authentication Error",
+        description: error.message || 'An error occurred during authentication',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
+    setError(null);
+    setLoading(true);
     try {
       await googleSignIn();
-      navigate('/collection');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google sign-in error:', error);
+      setError(error.message || 'An error occurred during Google sign-in');
+      toast({
+        title: "Google Sign-In Error",
+        description: error.message || 'An error occurred during Google sign-in',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleInstagramSignIn = async () => {
+    setError(null);
+    setLoading(true);
     try {
       await instagramSignIn();
-      navigate('/collection');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Instagram sign-in error:', error);
+      setError(error.message || 'An error occurred during Instagram sign-in');
+      toast({
+        title: "Instagram Sign-In Error",
+        description: error.message || 'An error occurred during Instagram sign-in',
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,6 +114,13 @@ const AuthScreen: React.FC = () => {
           <p className="text-muted-foreground text-center mb-8">
             Sign in to access your souvenir collection
           </p>
+
+          {error && (
+            <div className="mb-4 p-3 bg-destructive/10 text-destructive rounded-lg flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span className="text-sm">{error}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
@@ -121,10 +187,23 @@ const AuthScreen: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+              disabled={loading}
+              className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
-              <ArrowRight className="h-4 w-4" />
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                <>
+                  <span>{isLogin ? 'Sign In' : 'Create Account'}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </button>
           </form>
 
@@ -141,7 +220,8 @@ const AuthScreen: React.FC = () => {
             <button
               type="button"
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg border border-input bg-white hover:bg-gray-50 text-foreground transition-colors"
+              disabled={loading}
+              className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg border border-input bg-white hover:bg-gray-50 text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -168,7 +248,8 @@ const AuthScreen: React.FC = () => {
             <button
               type="button"
               onClick={handleInstagramSignIn}
-              className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg border border-input bg-white hover:bg-gray-50 text-foreground transition-colors"
+              disabled={loading}
+              className="w-full flex items-center justify-center space-x-2 py-3 rounded-lg border border-input bg-white hover:bg-gray-50 text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
