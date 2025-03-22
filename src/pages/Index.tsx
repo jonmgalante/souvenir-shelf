@@ -1,10 +1,10 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, Plus, Grid3X3 } from 'lucide-react';
 import { useSouvenirs } from '../context/SouvenirContext';
 import { useAuth } from '../context/AuthContext';
 import Layout from '../components/Layout';
+import WelcomeScreen from '../components/WelcomeScreen';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -17,91 +17,24 @@ const Index: React.FC = () => {
     }
   }, [user, loading, navigate]);
 
-  // If loading or not authenticated, don't render content yet
-  if (loading || !user) {
+  // If loading, show a simple loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  // If not authenticated, don't render content (will redirect via the useEffect)
+  if (!user) {
     return null;
   }
 
+  // If authenticated, show the welcome screen
   return (
-    <Layout hideNav={true}>
-      <div className="min-h-screen p-4 md:p-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-medium">Souvenir Shelf</h1>
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="py-1.5 px-3 pr-8 text-sm border rounded-md focus:outline-none"
-              />
-            </div>
-            <button className="p-1.5 border rounded-md">
-              <Filter className="w-4 h-4" />
-            </button>
-            <button 
-              onClick={() => navigate('/add')}
-              className="p-1.5 bg-black text-white rounded-md"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-        </header>
-        
-        {/* Subtitle */}
-        <p className="text-lg mb-8 font-serif">A personal museum from a life well-traveled</p>
-        
-        {/* Navigation */}
-        <nav className="mb-8">
-          <ul className="flex space-x-6 border-b">
-            <li className="pb-2 border-b-2 border-black font-medium text-sm">Story</li>
-            <li className="pb-2 text-sm text-gray-600 hover:text-black">Collections</li>
-            <li className="pb-2 text-sm text-gray-600 hover:text-black">Trips</li>
-          </ul>
-        </nav>
-        
-        {/* Empty State or Souvenirs Grid */}
-        {souvenirs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-              <Grid3X3 className="w-6 h-6 text-gray-400" />
-            </div>
-            <h2 className="text-xl font-medium mb-2">No souvenirs yet</h2>
-            <p className="text-gray-600 max-w-md mb-6">
-              Start building your personal museum by adding your first souvenir from your travels.
-            </p>
-            <button 
-              onClick={() => navigate('/add')}
-              className="px-4 py-2 bg-black text-white rounded-md flex items-center"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add your first souvenir
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {souvenirs.map((souvenir) => (
-              <div key={souvenir.id} className="space-y-2" onClick={() => navigate(`/souvenir/${souvenir.id}`)}>
-                <div className="aspect-square bg-gray-100 flex items-center justify-center rounded-none overflow-hidden">
-                  {souvenir.images && souvenir.images.length > 0 ? (
-                    <img 
-                      src={souvenir.images[0]} 
-                      alt={souvenir.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Grid3X3 className="w-6 h-6 text-gray-400" />
-                  )}
-                </div>
-                <div>
-                  <h3 className="font-medium text-sm">{souvenir.name}</h3>
-                  <p className="text-xs text-gray-600">{souvenir.location.city}, {souvenir.location.country}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+    <Layout hideNav={false}>
+      <WelcomeScreen />
     </Layout>
   );
 };
