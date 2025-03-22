@@ -55,14 +55,20 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
       setLoading(true);
       
       if (!user) {
-        // Use mock data when not authenticated
-        setSouvenirs(mockSouvenirs);
-        setTrips(mockTrips);
+        // Only use mock data when in development and not authenticated
+        if (process.env.NODE_ENV === 'development') {
+          setSouvenirs(mockSouvenirs);
+          setTrips(mockTrips);
+        } else {
+          setSouvenirs([]);
+          setTrips([]);
+        }
         setLoading(false);
         return;
       }
       
       try {
+        console.log('Fetching data for user:', user.id);
         // Fetch souvenirs and trips
         const [fetchedSouvenirs, fetchedTrips] = await Promise.all([
           fetchSouvenirs(),
@@ -79,9 +85,14 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
           variant: "destructive",
         });
         
-        // Use mock data as fallback
-        setSouvenirs(mockSouvenirs);
-        setTrips(mockTrips);
+        // Use mock data as fallback only in development
+        if (process.env.NODE_ENV === 'development') {
+          setSouvenirs(mockSouvenirs);
+          setTrips(mockTrips);
+        } else {
+          setSouvenirs([]);
+          setTrips([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -97,7 +108,7 @@ export const SouvenirProvider = ({ children }: { children: React.ReactNode }) =>
         description: "Please sign in to add souvenirs",
         variant: "destructive",
       });
-      return;
+      return Promise.reject(new Error("Authentication required"));
     }
     
     try {
