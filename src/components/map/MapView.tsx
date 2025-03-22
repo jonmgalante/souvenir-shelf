@@ -45,7 +45,7 @@ const MapView: React.FC = () => {
       { lat: 0, lng: 0 }
     );
     
-    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length] as [number, number];
+    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length];
   };
 
   if (loading) {
@@ -55,6 +55,9 @@ const MapView: React.FC = () => {
       </div>
     );
   }
+
+  // For react-leaflet v5, we need to use LatLngExpression for the center
+  const center = getMapCenter() as [number, number];
 
   return (
     <div className="p-4 h-[calc(100vh-80px)] flex flex-col">
@@ -67,12 +70,14 @@ const MapView: React.FC = () => {
       ) : (
         <Card className="flex-1 overflow-hidden">
           <MapContainer
-            center={getMapCenter()}
+            key="map-container"
+            center={center}
             zoom={2}
             style={{ height: '100%', width: '100%' }}
             scrollWheelZoom={true}
           >
             <TileLayer
+              key="tile-layer"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
