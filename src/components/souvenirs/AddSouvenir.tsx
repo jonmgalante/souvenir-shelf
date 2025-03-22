@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
@@ -179,7 +180,7 @@ const AddSouvenir: React.FC = () => {
   };
   
   return (
-    <div className="max-w-md mx-auto p-4">
+    <div className="max-w-md mx-auto p-4 pb-24">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-medium">Add Souvenir</h1>
         <button
@@ -250,15 +251,17 @@ const AddSouvenir: React.FC = () => {
           />
         </div>
         
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          className="w-full flex items-center justify-center gap-2"
-          disabled={submitting}
-        >
-          <Save size={18} />
-          {submitting ? 'Adding...' : 'Add to Collection'}
-        </Button>
+        {/* Submit Button - Made more prominent */}
+        <div className="sticky bottom-20 pt-4 pb-2 bg-background">
+          <Button
+            type="submit"
+            className="w-full py-6 text-lg flex items-center justify-center gap-2"
+            disabled={submitting}
+          >
+            <Save size={20} />
+            {submitting ? 'Adding...' : 'Add to Collection'}
+          </Button>
+        </div>
       </form>
       
       {/* Date picker popover */}
