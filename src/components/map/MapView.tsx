@@ -15,10 +15,23 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Add this type to help with TypeScript errors
-type ReactLeafletProps = {
-  [key: string]: any;
-};
+// Create declarations for react-leaflet components to fix TypeScript errors
+declare module 'react-leaflet' {
+  export interface MapContainerProps {
+    center?: [number, number];
+    zoom?: number;
+    scrollWheelZoom?: boolean;
+    style?: React.CSSProperties;
+    className?: string;
+    children?: React.ReactNode;
+  }
+
+  export interface TileLayerProps {
+    attribution?: string;
+    url: string;
+    children?: React.ReactNode;
+  }
+}
 
 const MapView: React.FC = () => {
   const { souvenirs, loading } = useSouvenirs();
@@ -37,7 +50,7 @@ const MapView: React.FC = () => {
   // Calculate map bounds or default center
   const getMapCenter = () => {
     if (souvenirs.length === 0) {
-      return [20, 0]; // Default center if no souvenirs
+      return [20, 0] as [number, number]; // Default center if no souvenirs
     }
     
     // Calculate average of all coordinates
@@ -50,7 +63,7 @@ const MapView: React.FC = () => {
       { lat: 0, lng: 0 }
     );
     
-    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length];
+    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length] as [number, number];
   };
 
   if (loading) {
@@ -75,14 +88,12 @@ const MapView: React.FC = () => {
       ) : (
         <Card className="flex-1 overflow-hidden">
           <div style={{ height: '100%', width: '100%' }}>
-            {/* @ts-ignore - react-leaflet v5 type mismatch */}
             <MapContainer
               style={{ height: '100%', width: '100%' }}
               center={center}
               zoom={2}
               scrollWheelZoom={true}
             >
-              {/* @ts-ignore - react-leaflet v5 type mismatch */}
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
