@@ -50,10 +50,10 @@ const AuthScreen: React.FC = () => {
       <div className="flex flex-col flex-1 justify-center items-center">
         <div className="w-full max-w-md px-6 py-8 glass-card rounded-3xl">
           <h1 className="text-3xl font-serif font-medium text-center mb-2">
-            Souvenir Shelf
+            Hey Jetsetter
           </h1>
           <p className="text-muted-foreground text-center mb-8">
-            Your personal museum from a life well-traveled
+            Sign in to access your souvenir collection
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -197,7 +197,7 @@ const AuthScreen: React.FC = () => {
       </div>
       
       <footer className="mt-8 mb-2 text-center text-sm text-muted-foreground">
-        <p>Your personal museum from a life well-traveled</p>
+        <p>Sign in to access your souvenir collection</p>
       </footer>
     </div>
   );
