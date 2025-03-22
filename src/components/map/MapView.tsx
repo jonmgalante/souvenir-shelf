@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { useNavigate } from 'react-router-dom';
 
 // Fix Leaflet icon issue
@@ -44,7 +45,7 @@ const MapView: React.FC = () => {
       { lat: 0, lng: 0 }
     );
     
-    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length];
+    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length] as [number, number];
   };
 
   if (loading) {
@@ -66,7 +67,7 @@ const MapView: React.FC = () => {
       ) : (
         <Card className="flex-1 overflow-hidden">
           <MapContainer
-            center={getMapCenter() as [number, number]}
+            center={getMapCenter()}
             zoom={2}
             style={{ height: '100%', width: '100%' }}
             scrollWheelZoom={true}
