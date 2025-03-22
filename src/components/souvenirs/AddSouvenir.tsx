@@ -1,6 +1,9 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSouvenirs, Location, Trip } from '../../context/SouvenirContext';
+import { useSouvenirs } from '../../context/SouvenirContext';
+import { Location } from '../../types/souvenir';
+import { Trip } from '../../types/trip';
 import { Map, Calendar, Camera, X, ChevronDown, Check, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
