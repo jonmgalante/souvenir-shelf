@@ -80,6 +80,6 @@ declare module 'mapbox-gl' {
 
   export function supported(options?: { failIfMajorPerformanceCaveat?: boolean }): boolean;
   
-  // Add the missing static accessToken property
-  export const accessToken: string;
+  // Change the accessToken property to be writeable
+  export let accessToken: string;
 }
