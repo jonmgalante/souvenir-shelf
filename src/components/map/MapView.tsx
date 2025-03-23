@@ -40,7 +40,7 @@ const MapView: React.FC = () => {
   }, [souvenirs]);
 
   // Calculate map center
-  const getMapCenter = (): LatLng => {
+  const getMapCenter = useMemo((): LatLng => {
     if (souvenirs.length === 0) {
       return { lat: 20, lng: 0 }; // Default center if no souvenirs
     }
@@ -56,7 +56,7 @@ const MapView: React.FC = () => {
     );
     
     return { lat: sum.lat / souvenirs.length, lng: sum.lng / souvenirs.length };
-  };
+  }, [souvenirs]);
 
   // Create marker elements before rendering
   const markerElements = useMemo(() => {
@@ -100,8 +100,7 @@ const MapView: React.FC = () => {
     );
   }
 
-  // Get center coordinates for the map
-  const center = getMapCenter();
+  const center = getMapCenter;
   const defaultCenter: [number, number] = [center.lat, center.lng];
 
   return (

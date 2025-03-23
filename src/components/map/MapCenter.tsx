@@ -1,6 +1,7 @@
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
+import L from 'leaflet';
 
 interface MapCenterProps {
   center: {
@@ -9,13 +10,11 @@ interface MapCenterProps {
   };
 }
 
-const MapCenter: React.FC<MapCenterProps> = ({ center }) => {
+const MapCenter = ({ center }: MapCenterProps) => {
   const map = useMap();
   
   useEffect(() => {
-    if (map) {
-      map.setView([center.lat, center.lng], map.getZoom());
-    }
+    map.setView([center.lat, center.lng], map.getZoom());
   }, [center, map]);
   
   return null;
