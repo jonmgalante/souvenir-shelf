@@ -9,7 +9,7 @@ declare module 'react-leaflet' {
     scrollWheelZoom?: boolean;
     style?: React.CSSProperties;
     className?: string;
-    children: ReactNode;
+    children?: ReactNode;
   }
 
   export interface TileLayerProps {
@@ -23,7 +23,7 @@ declare module 'react-leaflet' {
   }
 
   export interface PopupProps {
-    children: ReactNode;
+    children?: ReactNode;
   }
   
   export function useMap(): L.Map;

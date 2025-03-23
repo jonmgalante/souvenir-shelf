@@ -22,7 +22,7 @@ interface LatLng {
 }
 
 // Component to update the map center when it changes
-const MapCenterUpdater: React.FC<{ center: LatLng }> = ({ center }) => {
+const MapCenterUpdater = ({ center }: { center: LatLng }) => {
   const map = useMap();
   
   useEffect(() => {
@@ -89,10 +89,10 @@ const MapView: React.FC = () => {
         <Card className="flex-1 overflow-hidden">
           <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
-              style={{ height: '100%', width: '100%' }}
               center={defaultCenter}
               zoom={2}
               scrollWheelZoom={true}
+              style={{ height: '100%', width: '100%' }}
             >
               <MapCenterUpdater center={center} />
               <TileLayer
@@ -102,10 +102,11 @@ const MapView: React.FC = () => {
               
               {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
                 const [lat, lng] = key.split(',').map(Number);
+                const position: [number, number] = [lat, lng];
                 return (
                   <Marker 
                     key={key} 
-                    position={[lat, lng]}
+                    position={position}
                   >
                     <Popup>
                       <div className="max-w-xs">
