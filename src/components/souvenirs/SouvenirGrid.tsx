@@ -26,6 +26,8 @@ const SouvenirGrid: React.FC = () => {
     categories
   } = useFilteredSouvenirs(souvenirs);
 
+  console.log('Rendering SouvenirGrid with souvenirs:', souvenirs.length);
+
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
       <FilterBar 

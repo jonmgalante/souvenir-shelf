@@ -27,8 +27,14 @@ export const useImageUpload = (): UseImageUploadReturn => {
       const imageUrl = URL.createObjectURL(file);
       setImageUrls(prev => [...prev, imageUrl]);
       
-      // We'll use the same URLs as placeholders until proper image upload is implemented
-      setImages(prev => [...prev, imageUrl]);
+      // Store the file name or other persistent identifier instead of blob URL
+      // For now we'll use a data URL which is more persistent than blob URLs
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setImages(prev => [...prev, dataUrl]);
+      };
+      reader.readAsDataURL(file);
     });
   };
   

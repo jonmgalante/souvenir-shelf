@@ -34,7 +34,7 @@ export const addSouvenir = async (userId: string, souvenir: Omit<Souvenir, 'id' 
     trip_id: souvenir.tripId,
   };
   
-  console.log('Saving souvenir to database:', dbSouvenir);
+  console.log('Saving souvenir to database:', { ...dbSouvenir, images: `${souvenir.images?.length || 0} images` });
   
   const { data, error } = await supabase
     .from('souvenirs')
@@ -80,6 +80,8 @@ export const updateSouvenir = async (id: string, updates: Partial<Souvenir>) => 
   if ('tripId' in updates) dbUpdates.trip_id = updates.tripId;
   
   dbUpdates.updated_at = new Date().toISOString();
+  
+  console.log('Updating souvenir in database:', { id, ...dbUpdates, images: updates.images ? `${updates.images.length} images` : undefined });
   
   const { data, error } = await supabase
     .from('souvenirs')
