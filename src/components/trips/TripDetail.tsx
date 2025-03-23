@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip, Souvenir } from '../../context/souvenir';
@@ -7,9 +6,9 @@ import { format } from 'date-fns';
 import SouvenirCard from '../souvenirs/SouvenirCard';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '../ui/drawer';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { toast } from '../ui/use-toast';
 
 const TripDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +20,7 @@ const TripDetail: React.FC = () => {
   const [otherSouvenirs, setOtherSouvenirs] = useState<Souvenir[]>([]);
   const [isAddExistingOpen, setIsAddExistingOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddingToTrip, setIsAddingToTrip] = useState(false);
   
   useEffect(() => {
     if (!loading && trips.length > 0 && id) {
@@ -40,14 +40,31 @@ const TripDetail: React.FC = () => {
   
   const addExistingSouvenir = async (souvenir: Souvenir) => {
     try {
+      setIsAddingToTrip(true);
+      
+      console.log(`Adding souvenir ${souvenir.id} to trip ${id}`);
       await updateSouvenir(souvenir.id, { tripId: id });
-      setIsAddExistingOpen(false);
+      
+      toast({
+        title: "Souvenir added to trip",
+        description: `${souvenir.name} has been added to this trip.`,
+      });
       
       // Update local state
       setTripSouvenirs(prev => [...prev, {...souvenir, tripId: id}]);
       setOtherSouvenirs(prev => prev.filter(s => s.id !== souvenir.id));
+      
+      // Close the dialog
+      setIsAddExistingOpen(false);
     } catch (error) {
       console.error('Error adding existing souvenir to trip:', error);
+      toast({
+        title: "Error adding souvenir",
+        description: "There was a problem adding the souvenir to this trip.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingToTrip(false);
     }
   };
   
@@ -212,7 +229,7 @@ const TripDetail: React.FC = () => {
                   <div 
                     key={souvenir.id}
                     className="flex items-center p-2 rounded-lg border border-input hover:bg-accent cursor-pointer"
-                    onClick={() => addExistingSouvenir(souvenir)}
+                    onClick={() => !isAddingToTrip && addExistingSouvenir(souvenir)}
                   >
                     <div 
                       className="w-16 h-16 rounded-md bg-secondary mr-3 bg-cover bg-center"
@@ -222,10 +239,11 @@ const TripDetail: React.FC = () => {
                           : 'none'
                       }}
                     />
-                    <div>
+                    <div className="flex-1">
                       <h3 className="font-medium">{souvenir.name}</h3>
                       <p className="text-sm text-muted-foreground">{souvenir.location.city}, {souvenir.location.country}</p>
                     </div>
+                    {isAddingToTrip && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>}
                   </div>
                 ))}
               </div>
