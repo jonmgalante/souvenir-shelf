@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip } from '../../context/souvenir';
-import { FolderPlus, Calendar, Plus, X, Upload } from 'lucide-react';
+import { FolderPlus, Calendar, Plus, X, Upload, ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useImageUploadWithCrop } from '../../hooks/useImageUploadWithCrop';
 import { Button } from '../ui/button';
@@ -26,7 +26,8 @@ const TripFolders: React.FC = () => {
     setImageToEdit,
     currentEditIndex,
     setCurrentEditIndex,
-    handleCropComplete
+    handleCropComplete,
+    images
   } = useImageUploadWithCrop();
   
   const getSouvenirCount = (tripId: string) => {
@@ -38,21 +39,28 @@ const TripFolders: React.FC = () => {
       return;
     }
     
+    const coverImage = images.length > 0 
+      ? images[0] 
+      : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1000&auto=format&fit=crop';
+    
+    console.log("Adding trip with coverImage:", coverImage.substring(0, 50) + "...");
+    
     await addTrip({
       name: newTripName.trim(),
       dateRange: {
         start: startDate,
         end: endDate,
       },
-      coverImage: imageUrls.length > 0 
-        ? imageUrls[0] 
-        : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1000&auto=format&fit=crop',
+      coverImage: coverImage,
     });
     
     setNewTripName('');
     setStartDate('');
     setEndDate('');
     setShowAddTrip(false);
+    if (images.length > 0) {
+      removeImage(0);
+    }
   };
   
   const handleCropCancel = () => {
@@ -184,8 +192,16 @@ interface TripCardProps {
 const TripCard: React.FC<TripCardProps> = ({ trip, souvenirCount, onClick }) => {
   const startDate = new Date(trip.dateRange.start);
   const endDate = new Date(trip.dateRange.end);
+  const [imageError, setImageError] = useState(false);
   
   const formattedDateRange = `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
+  
+  const handleImageError = () => {
+    console.error("Failed to load trip image:", trip.coverImage);
+    setImageError(true);
+  };
+  
+  const isValidImage = trip.coverImage && typeof trip.coverImage === 'string' && trip.coverImage.trim() !== '';
   
   return (
     <div
@@ -194,12 +210,31 @@ const TripCard: React.FC<TripCardProps> = ({ trip, souvenirCount, onClick }) => 
     >
       <div
         className="aspect-video bg-muted relative"
-        style={{
-          backgroundImage: `url(${trip.coverImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
+        style={
+          !imageError && isValidImage
+            ? {
+                backgroundImage: `url(${trip.coverImage})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }
+            : {}
+        }
       >
+        {(imageError || !isValidImage) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+            <ImageIcon className="h-10 w-10 text-gray-400" />
+          </div>
+        )}
+        
+        {isValidImage && (
+          <img 
+            src={trip.coverImage} 
+            alt="" 
+            className="hidden" 
+            onError={handleImageError}
+          />
+        )}
+        
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col justify-end p-4 text-white">
           <h3 className="text-xl font-serif font-medium line-clamp-1">{trip.name}</h3>
           <div className="flex items-center text-sm opacity-90 mt-1">

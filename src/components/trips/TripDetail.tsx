@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip, Souvenir } from '../../context/souvenir';
-import { ArrowLeft, Calendar, Map, Plus, List, Upload, X, Camera, Pencil } from 'lucide-react';
+import { ArrowLeft, Calendar, Map, Plus, List, Upload, X, Camera, Pencil, ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import SouvenirCard from '../souvenirs/SouvenirCard';
 import { Button } from '../ui/button';
@@ -38,7 +38,8 @@ const TripDetail: React.FC = () => {
     setImageToEdit,
     currentEditIndex,
     setCurrentEditIndex,
-    handleCropComplete
+    handleCropComplete,
+    images
   } = useImageUploadWithCrop();
   
   useEffect(() => {
@@ -175,13 +176,13 @@ const TripDetail: React.FC = () => {
   };
   
   const handleUpdateTripPhoto = async () => {
-    if (!trip || !id || imageUrls.length === 0) return;
+    if (!trip || !id || images.length === 0) return;
     
     try {
       setIsUpdatingPhoto(true);
       
-      const imageUrl = imageUrls[0];
-      console.log("Updating trip photo with URL:", imageUrl);
+      const imageUrl = images[0];
+      console.log("Updating trip photo with URL:", imageUrl.substring(0, 50) + "...");
       
       await updateTrip(id, { coverImage: imageUrl });
       
@@ -263,6 +264,11 @@ const TripDetail: React.FC = () => {
   const endDate = new Date(trip.dateRange.end);
   const formattedDateRange = `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
   
+  const handleCoverImageError = () => {
+    console.error("Failed to load trip cover image:", trip.coverImage);
+    setImageError(true);
+  };
+  
   const isValidCoverImage = 
     !imageError && 
     trip.coverImage && 
@@ -287,6 +293,15 @@ const TripDetail: React.FC = () => {
         style={coverImageStyle}
         onClick={handleEditImage}
       >
+        {isValidCoverImage && (
+          <img 
+            src={trip.coverImage} 
+            className="hidden" 
+            alt="" 
+            onError={handleCoverImageError}
+          />
+        )}
+        
         {!isValidCoverImage && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div className="text-center">
@@ -494,4 +509,3 @@ const TripDetail: React.FC = () => {
 };
 
 export default TripDetail;
-
