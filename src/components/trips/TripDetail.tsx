@@ -58,26 +58,109 @@ const TripDetail: React.FC = () => {
 
   useEffect(() => {
     if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0 && editingExistingImage) {
-      try {
-        const imageUrl = trip.coverImage;
-        
-        if (imageUrl.startsWith('data:')) {
-          const parts = imageUrl.split(',');
-          if (parts.length >= 2) {
-            const mimeMatch = parts[0].match(/:(.*?);/);
-            const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      loadTripCoverImage(trip.coverImage);
+    }
+  }, [trip, isPhotoDialogOpen, imageUrls.length, editingExistingImage, handleImageChange]);
+
+  const loadTripCoverImage = (imageUrl: string) => {
+    try {
+      if (!imageUrl.startsWith('data:')) {
+        loadImageAsUrl(imageUrl);
+        setEditingExistingImage(false);
+        return;
+      }
+
+      const parts = imageUrl.split(',');
+      if (parts.length < 2) {
+        console.error('Invalid data URL format');
+        setEditingExistingImage(false);
+        return;
+      }
+
+      let mimeType = 'image/jpeg';
+      const mimeMatch = parts[0].match(/:(.*?);/);
+      if (mimeMatch && mimeMatch[1]) {
+        mimeType = mimeMatch[1];
+      }
+
+      const tempImg = new Image();
+      tempImg.onload = () => {
+        try {
+          const base64Data = parts[1].trim();
+          
+          try {
+            const byteCharacters = atob(base64Data);
+            const byteArrays = [];
             
-            try {
-              const byteString = atob(parts[1]);
-              const ab = new ArrayBuffer(byteString.length);
-              const ia = new Uint8Array(ab);
+            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+              const slice = byteCharacters.slice(offset, offset + 512);
               
-              for (let i = 0; i < byteString.length; i++) {
-                ia[i] = byteString.charCodeAt(i);
+              const byteNumbers = new Array(slice.length);
+              for (let i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
               }
               
-              const blob = new Blob([ab], { type: mimeType });
-              const file = new File([blob], 'current-cover.jpg', { type: mimeType });
+              const byteArray = new Uint8Array(byteNumbers);
+              byteArrays.push(byteArray);
+            }
+            
+            const blob = new Blob(byteArrays, { type: mimeType });
+            const file = new File([blob], 'current-cover.jpg', { type: mimeType });
+            
+            const event = {
+              target: {
+                files: [file]
+              }
+            } as unknown as React.ChangeEvent<HTMLInputElement>;
+            
+            handleImageChange(event);
+          } catch (e) {
+            console.error('Error processing base64 data:', e);
+            loadImageAsDataUrl(imageUrl);
+          }
+        } catch (e) {
+          console.error('Base64 decoding failed:', e);
+          loadImageAsDataUrl(imageUrl);
+        }
+      };
+      
+      tempImg.onerror = () => {
+        console.error('Image failed to load from data URL');
+        setEditingExistingImage(false);
+        toast({
+          title: "Failed to load image",
+          description: "The image data appears to be corrupted.",
+          variant: "destructive",
+        });
+      };
+      
+      tempImg.src = imageUrl;
+    } catch (error) {
+      console.error('Error in loadTripCoverImage:', error);
+      setEditingExistingImage(false);
+    }
+  };
+  
+  const loadImageAsDataUrl = (dataUrl: string) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        
+        try {
+          const cleanDataUrl = canvas.toDataURL('image/jpeg');
+          
+          fetch(cleanDataUrl)
+            .then(res => res.blob())
+            .then(blob => {
+              const file = new File([blob], 'current-cover.jpg', { type: 'image/jpeg' });
               
               const event = {
                 target: {
@@ -86,27 +169,58 @@ const TripDetail: React.FC = () => {
               } as unknown as React.ChangeEvent<HTMLInputElement>;
               
               handleImageChange(event);
-            } catch (e) {
-              console.error('Error decoding base64 data:', e);
-              loadImageAsUrl(imageUrl);
-            }
-          } else {
-            console.error('Invalid data URL format');
-            loadImageAsUrl(imageUrl);
-          }
-        } else {
-          loadImageAsUrl(imageUrl);
+            })
+            .catch(err => {
+              console.error('Error creating blob from clean data URL:', err);
+            });
+        } catch (e) {
+          console.error('Error creating clean data URL:', e);
         }
-        
-        setEditingExistingImage(false);
-      } catch (error) {
-        console.error('Error processing image:', error);
-        setEditingExistingImage(false);
       }
-    }
-  }, [trip, isPhotoDialogOpen, imageUrls.length, editingExistingImage, handleImageChange]);
+    };
+    
+    img.onerror = () => {
+      console.error('Failed to load image from data URL');
+      setEditingExistingImage(false);
+    };
+    
+    img.src = dataUrl;
+  };
   
   const loadImageAsUrl = (url: string) => {
+    const tempImg = new Image();
+    tempImg.crossOrigin = 'anonymous';
+    
+    tempImg.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = tempImg.width;
+      canvas.height = tempImg.height;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(tempImg, 0, 0);
+        
+        try {
+          const dataUrl = canvas.toDataURL('image/jpeg');
+          loadImageAsDataUrl(dataUrl);
+        } catch (e) {
+          console.error('Error creating data URL from canvas:', e);
+          fetchImageDirectly(url);
+        }
+      } else {
+        fetchImageDirectly(url);
+      }
+    };
+    
+    tempImg.onerror = () => {
+      console.error('Image URL failed to load:', url);
+      fetchImageDirectly(url);
+    };
+    
+    tempImg.src = url;
+  };
+  
+  const fetchImageDirectly = (url: string) => {
     fetch(url)
       .then(response => {
         if (!response.ok) {
@@ -126,11 +240,15 @@ const TripDetail: React.FC = () => {
       })
       .catch(error => {
         console.error('Error loading image as URL:', error);
+        setEditingExistingImage(false);
         toast({
           title: "Failed to load image",
           description: "Could not load the existing image for editing.",
           variant: "destructive",
         });
+      })
+      .finally(() => {
+        setEditingExistingImage(false);
       });
   };
   
@@ -248,6 +366,11 @@ const TripDetail: React.FC = () => {
   const endDate = new Date(trip.dateRange.end);
   const formattedDateRange = `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
   
+  const hasCoverImage = trip.coverImage && typeof trip.coverImage === 'string' && trip.coverImage.trim() !== '';
+  const coverImageStyle = hasCoverImage ? 
+    { backgroundImage: `url(${trip.coverImage})` } : 
+    { backgroundColor: '#f0f0f0' };
+  
   return (
     <div className="souvenir-container animate-fade-in pb-24">
       <div className="flex items-center space-x-4 mb-6">
@@ -259,12 +382,7 @@ const TripDetail: React.FC = () => {
       
       <div 
         className="w-full h-48 md:h-64 lg:h-80 rounded-lg bg-muted mb-6 relative overflow-hidden cursor-pointer group"
-        style={{
-          backgroundImage: `url(${trip?.coverImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-        onClick={handleEditExistingImage}
+        style={coverImageStyle}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
           <div className="flex items-center space-x-2 text-sm">
@@ -277,6 +395,11 @@ const TripDetail: React.FC = () => {
             <Pencil className="h-6 w-6" />
           </div>
         </div>
+        <button 
+          className="absolute inset-0 w-full h-full opacity-0"
+          onClick={handleEditExistingImage}
+          aria-label="Edit trip photo"
+        ></button>
       </div>
       
       <div className="flex items-center justify-between mb-4">
