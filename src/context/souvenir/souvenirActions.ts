@@ -1,4 +1,3 @@
-
 import { Souvenir } from '../../types/souvenir';
 import { Trip } from '../../types/trip';
 import { toast } from '@/components/ui/use-toast';
@@ -82,12 +81,29 @@ export const updateSouvenirAction = async (id: string, updates: Partial<Souvenir
 export const deleteSouvenirAction = async (id: string) => {
   try {
     console.log('Deleting souvenir action started for ID:', id);
-    const result = await deleteSouvenirService(id);
+    
+    // Call the service to delete the souvenir
+    await deleteSouvenirService(id);
+    
     console.log('Delete service completed successfully, returning ID:', id);
+    
+    // Add a success toast
+    toast({
+      title: "Souvenir deleted",
+      description: "The souvenir has been successfully removed",
+    });
+    
     return id;
   } catch (error: any) {
     console.error('Error in deleteSouvenirAction:', error);
-    // No need to show toast here as it's already shown in the service
+    
+    // Show error toast
+    toast({
+      title: "Failed to delete souvenir",
+      description: error.message || "Please try again",
+      variant: "destructive",
+    });
+    
     throw error;
   }
 };
