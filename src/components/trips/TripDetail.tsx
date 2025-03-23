@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip, Souvenir } from '../../context/souvenir';
 import { ArrowLeft, Calendar, Map } from 'lucide-react';
 import { format } from 'date-fns';
-import { SouvenirCard } from '../souvenirs/SouvenirCard';
+import SouvenirCard from '../souvenirs/SouvenirCard';
 
 const TripDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
