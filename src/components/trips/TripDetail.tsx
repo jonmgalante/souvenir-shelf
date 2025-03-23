@@ -58,22 +58,28 @@ const TripDetail: React.FC = () => {
 
   useEffect(() => {
     if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0 && editingExistingImage) {
-      fetch(trip.coverImage)
-        .then(response => response.blob())
-        .then(blob => {
-          const file = new File([blob], 'current-cover.jpg', { type: 'image/jpeg' });
-          const event = {
-            target: {
-              files: [file]
-            }
-          } as unknown as React.ChangeEvent<HTMLInputElement>;
-          handleImageChange(event);
-          setEditingExistingImage(false);
-        })
-        .catch(error => {
-          console.error('Error loading current image:', error);
-          setEditingExistingImage(false);
-        });
+      const dataUrl = trip.coverImage;
+      
+      const byteString = atob(dataUrl.split(',')[1]);
+      const mimeType = dataUrl.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      
+      const blob = new Blob([ab], { type: mimeType });
+      const file = new File([blob], 'current-cover.jpg', { type: mimeType });
+      
+      const event = {
+        target: {
+          files: [file]
+        }
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      
+      handleImageChange(event);
+      setEditingExistingImage(false);
     }
   }, [trip, isPhotoDialogOpen, imageUrls.length, editingExistingImage, handleImageChange]);
   
