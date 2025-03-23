@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { useNavigate } from 'react-router-dom';
@@ -60,14 +61,8 @@ const TripFolders: React.FC = () => {
               <CardContent className="pb-2">
                 <div className="flex items-center text-sm text-muted-foreground mb-1">
                   <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                  {formatDateRange(trip.startDate, trip.endDate)}
+                  {formatDateRange(trip.dateRange.start, trip.dateRange.end)}
                 </div>
-                {trip.destination && (
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPinIcon className="h-3.5 w-3.5 mr-1" />
-                    {trip.destination}
-                  </div>
-                )}
               </CardContent>
               <CardFooter className="text-sm text-muted-foreground pt-0">
                 {trip.souvenirCount || 0} souvenirs

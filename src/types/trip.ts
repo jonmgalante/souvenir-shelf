@@ -8,4 +8,5 @@ export type Trip = {
     end: string;
   };
   coverImage?: string;
+  souvenirCount?: number;
 };
