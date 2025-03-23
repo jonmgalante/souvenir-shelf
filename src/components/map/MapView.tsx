@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSouvenirs } from '../../context/souvenir';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Card } from '../ui/card';
@@ -20,6 +20,17 @@ interface LatLng {
   lat: number;
   lng: number;
 }
+
+// Component to update the map center when it changes
+const MapCenterUpdater: React.FC<{ center: LatLng }> = ({ center }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    map.setView([center.lat, center.lng], map.getZoom());
+  }, [center, map]);
+  
+  return null;
+};
 
 const MapView: React.FC = () => {
   const { souvenirs, loading } = useSouvenirs();
@@ -64,6 +75,7 @@ const MapView: React.FC = () => {
 
   // Get center coordinates for the map
   const center = getMapCenter();
+  const defaultCenter: [number, number] = [center.lat, center.lng];
 
   return (
     <div className="p-4 h-[calc(100vh-80px)] flex flex-col">
@@ -77,17 +89,17 @@ const MapView: React.FC = () => {
         <Card className="flex-1 overflow-hidden">
           <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
-              center={[center.lat, center.lng]}
+              style={{ height: '100%', width: '100%' }}
+              center={defaultCenter}
               zoom={2}
               scrollWheelZoom={true}
-              style={{ height: '100%', width: '100%' }}
             >
+              <MapCenterUpdater center={center} />
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
               
-              {/* Render markers for each unique location */}
               {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
                 const [lat, lng] = key.split(',').map(Number);
                 return (
