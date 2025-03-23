@@ -79,4 +79,7 @@ declare module 'mapbox-gl' {
   }
 
   export function supported(options?: { failIfMajorPerformanceCaveat?: boolean }): boolean;
+  
+  // Add the missing static accessToken property
+  export const accessToken: string;
 }

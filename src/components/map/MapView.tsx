@@ -7,8 +7,8 @@ import { Globe } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// Replace with your own Mapbox access token
-mapboxgl.accessToken = 'pk.eyJ1IjoiZGVtb3VzZXIiLCJhIjoiY2xmZWFhZTFwMDRlbDN2bW04Z2JjeHM2cyJ9.jHXLj8NPx1sr1VNC5Hem-A';
+// Set the Mapbox access token
+mapboxgl.accessToken = 'pk.eyJ1Ijoiam9ubWdhbGFudGUiLCJhIjoiY204a3ltMHh1MHhwczJxcG8yZXRqaDgxZiJ9.mN_EYyrVSLoOB5Pojc_FWQ';
 
 const MapView: React.FC = () => {
   const { souvenirs, loading } = useSouvenirs();
