@@ -26,6 +26,7 @@ export const addSouvenir = async (userId: string, souvenir: Omit<Souvenir, 'id' 
     images: souvenir.images,
     country: souvenir.location.country,
     city: souvenir.location.city,
+    address: souvenir.location.address || null,
     latitude: souvenir.location.latitude,
     longitude: souvenir.location.longitude,
     date_acquired: souvenir.dateAcquired,
@@ -71,6 +72,7 @@ export const updateSouvenir = async (id: string, updates: Partial<Souvenir>) => 
   if (updates.location) {
     dbUpdates.country = updates.location.country;
     dbUpdates.city = updates.location.city;
+    dbUpdates.address = updates.location.address || null;
     dbUpdates.latitude = updates.location.latitude;
     dbUpdates.longitude = updates.location.longitude;
   }

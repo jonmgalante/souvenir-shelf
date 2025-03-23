@@ -48,11 +48,15 @@ const LocationInput: React.FC<LocationInputProps> = ({
           
           const data = await response.json();
           
-          // Extract city and country from response
+          // Extract city, country, and address from response
           let city = "";
           let country = "";
+          let address = "";
           
           if (data.features && data.features.length > 0) {
+            // Get full formatted address from the first feature
+            address = data.features[0].place_name || "";
+            
             // Extract place info from the features
             for (const feature of data.features) {
               if (feature.place_type.includes('country')) {
@@ -72,7 +76,8 @@ const LocationInput: React.FC<LocationInputProps> = ({
             latitude,
             longitude,
             city: city || "Unknown location",
-            country: country || "Unknown country"
+            country: country || "Unknown country",
+            address: address || ""
           });
 
           toast({
@@ -150,6 +155,9 @@ const LocationInput: React.FC<LocationInputProps> = ({
         <div className="p-3 bg-gray-50 rounded-lg flex flex-col">
           <span className="font-medium">{location.city}</span>
           <span className="text-sm text-gray-600">{location.country}</span>
+          {location.address && (
+            <span className="text-sm text-gray-500 mt-1">{location.address}</span>
+          )}
           <span className="text-xs text-gray-400 mt-1">
             Coordinates: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
           </span>

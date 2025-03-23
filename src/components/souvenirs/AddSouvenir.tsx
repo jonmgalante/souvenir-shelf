@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
@@ -17,6 +18,8 @@ import { Calendar as CalendarComponent } from '../ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { toast } from '../ui/use-toast';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
 
 const AddSouvenir: React.FC = () => {
   const navigate = useNavigate();
@@ -30,6 +33,7 @@ const AddSouvenir: React.FC = () => {
   const [location, setLocation] = useState<Location>({
     country: '',
     city: '',
+    address: '',
     latitude: 0,
     longitude: 0
   });
@@ -55,11 +59,12 @@ const AddSouvenir: React.FC = () => {
     setShowLocationModal(false);
   };
 
-  const searchLocation = async (city: string, country: string) => {
-    if (!city || !country) return;
+  const searchLocation = async (address: string = '', city: string, country: string) => {
+    if ((!address && (!city || !country))) return null;
     
     try {
-      const query = `${city}, ${country}`;
+      // Use address if provided, otherwise use city and country
+      const query = address ? address : `${city}, ${country}`;
       const mapboxToken = 'pk.eyJ1Ijoiam9ubWdhbGFudGUiLCJhIjoiY204a3ltMHh1MHhwczJxcG8yZXRqaDgxZiJ9.mN_EYyrVSLoOB5Pojc_FWQ';
       
       const response = await fetch(
@@ -72,10 +77,31 @@ const AddSouvenir: React.FC = () => {
       
       if (data.features && data.features.length > 0) {
         const [longitude, latitude] = data.features[0].center;
+        const place_name = data.features[0].place_name || "";
+        
+        // If we searched by address, try to extract city and country from the result
+        let resultCity = city;
+        let resultCountry = country;
+        
+        if (address) {
+          // Extract city and country from the features
+          for (const feature of data.features) {
+            if (feature.place_type.includes('country')) {
+              resultCountry = feature.text;
+            } else if (
+              feature.place_type.includes('place') || 
+              feature.place_type.includes('locality') ||
+              feature.place_type.includes('region')
+            ) {
+              resultCity = feature.text;
+            }
+          }
+        }
         
         return {
-          city,
-          country,
+          city: resultCity || city,
+          country: resultCountry || country,
+          address: address || "",
           latitude,
           longitude
         };
@@ -124,7 +150,7 @@ const AddSouvenir: React.FC = () => {
       let locationWithCoords = location;
       
       if (location.latitude === 0 && location.longitude === 0) {
-        const coords = await searchLocation(location.city, location.country);
+        const coords = await searchLocation(location.address, location.city, location.country);
         if (coords) {
           locationWithCoords = coords;
         } else {
@@ -175,16 +201,16 @@ const AddSouvenir: React.FC = () => {
           <div className="p-4">
             <div className="space-y-4">
               <div>
-                <label htmlFor="country" className="block text-sm font-medium mb-1">
-                  Country
+                <label htmlFor="address" className="block text-sm font-medium mb-1">
+                  Address (optional)
                 </label>
                 <input
                   type="text"
-                  id="country"
-                  value={location.country}
-                  onChange={(e) => setLocation(prev => ({ ...prev, country: e.target.value }))}
+                  id="address"
+                  value={location.address || ''}
+                  onChange={(e) => setLocation(prev => ({ ...prev, address: e.target.value }))}
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  placeholder="e.g. France"
+                  placeholder="e.g. 123 Main St, Paris, France"
                 />
               </div>
               
@@ -199,6 +225,20 @@ const AddSouvenir: React.FC = () => {
                   onChange={(e) => setLocation(prev => ({ ...prev, city: e.target.value }))}
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
                   placeholder="e.g. Paris"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="country" className="block text-sm font-medium mb-1">
+                  Country
+                </label>
+                <input
+                  type="text"
+                  id="country"
+                  value={location.country}
+                  onChange={(e) => setLocation(prev => ({ ...prev, country: e.target.value }))}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                  placeholder="e.g. France"
                 />
               </div>
               
@@ -229,7 +269,7 @@ const AddSouvenir: React.FC = () => {
                       }
                       
                       try {
-                        const coords = await searchLocation(location.city, location.country);
+                        const coords = await searchLocation(location.address, location.city, location.country);
                         if (coords) {
                           handleLocationSelect(coords);
                         } else {
