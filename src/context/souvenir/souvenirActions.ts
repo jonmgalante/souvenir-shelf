@@ -81,15 +81,13 @@ export const updateSouvenirAction = async (id: string, updates: Partial<Souvenir
 
 export const deleteSouvenirAction = async (id: string) => {
   try {
-    await deleteSouvenirService(id);
+    console.log('Deleting souvenir action started for ID:', id);
+    const result = await deleteSouvenirService(id);
+    console.log('Delete service completed successfully, returning ID:', id);
     return id;
   } catch (error: any) {
-    console.error('Error deleting souvenir:', error);
-    toast({
-      title: "Failed to delete souvenir",
-      description: error.message || "Please try again",
-      variant: "destructive",
-    });
+    console.error('Error in deleteSouvenirAction:', error);
+    // No need to show toast here as it's already shown in the service
     throw error;
   }
 };

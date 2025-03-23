@@ -6,6 +6,16 @@ import { Map, Calendar, ArrowLeft, Tag, Share2, Edit, MapPin, Trash2 } from 'luc
 import { format } from 'date-fns';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '../ui/alert-dialog';
 import { Location } from '../../types/souvenir';
 
 const SouvenirDetail: React.FC = () => {
@@ -15,6 +25,7 @@ const SouvenirDetail: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -44,14 +55,22 @@ const SouvenirDetail: React.FC = () => {
   
   const handleDeleteConfirm = async () => {
     try {
-      setIsSubmitting(true);
-      await deleteSouvenir(id || '');
+      setIsDeleting(true);
+      console.log('Delete confirmation handler triggered for ID:', id);
+      
+      if (!id) {
+        console.error('Cannot delete: souvenir ID is undefined');
+        setIsDeleting(false);
+        setIsDeleteDialogOpen(false);
+        return;
+      }
+      
+      await deleteSouvenir(id);
+      console.log('Delete successful, navigating to collection page');
       navigate('/collection');
     } catch (error) {
-      console.error('Error deleting souvenir:', error);
-    } finally {
-      setIsSubmitting(false);
-      setIsDeleteDialogOpen(false);
+      console.error('Error in handleDeleteConfirm:', error);
+      setIsDeleting(false);
     }
   };
   
@@ -220,33 +239,27 @@ const SouvenirDetail: React.FC = () => {
         </div>
       </div>
       
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Souvenir</DialogTitle>
-            <DialogDescription>
+      {/* Delete Confirmation Dialog - using AlertDialog instead of Dialog for more robust behavior */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Souvenir</AlertDialogTitle>
+            <AlertDialogDescription>
               Are you sure you want to delete this souvenir? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setIsDeleteDialogOpen(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
               onClick={handleDeleteConfirm}
-              disabled={isSubmitting}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isSubmitting ? 'Deleting...' : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>

@@ -107,23 +107,39 @@ export const updateSouvenir = async (id: string, updates: Partial<Souvenir>) => 
 };
 
 export const deleteSouvenir = async (id: string) => {
-  const { error } = await supabase
-    .from('souvenirs')
-    .delete()
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Error deleting souvenir:', error);
+  try {
+    console.log('Deleting souvenir with ID:', id);
+    
+    const { error } = await supabase
+      .from('souvenirs')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting souvenir:', error);
+      toast({
+        title: "Failed to delete souvenir",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      throw error;
+    }
+    
+    console.log('Souvenir deleted successfully');
+    
+    toast({
+      title: "Souvenir deleted",
+      description: "The souvenir has been removed from your collection",
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Exception in deleteSouvenir:', error);
     toast({
       title: "Failed to delete souvenir",
-      description: error.message || "Please try again",
+      description: error instanceof Error ? error.message : "An unexpected error occurred",
       variant: "destructive",
     });
     throw error;
   }
-  
-  toast({
-    title: "Souvenir deleted",
-    description: "The souvenir has been removed from your collection",
-  });
 };
