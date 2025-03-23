@@ -38,9 +38,9 @@ const MapView: React.FC = () => {
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
       projection: 'globe',
-      zoom: 1.8,
-      center: [0, 20],
-      pitch: 40,
+      zoom: 2,        // Adjusted zoom level for better view
+      center: [0, 0], // Centered at [0,0] coordinates
+      pitch: 30,      // Reduced pitch for better vertical centering
       attributionControl: false
     });
 
