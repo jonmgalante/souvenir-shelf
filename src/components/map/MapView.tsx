@@ -64,6 +64,8 @@ const MapView: React.FC = () => {
 
   // Get center coordinates for the map
   const center = getMapCenter();
+  // Convert center to array format expected by Leaflet
+  const centerPosition: [number, number] = [center.lat, center.lng];
 
   return (
     <div className="p-4 h-[calc(100vh-80px)] flex flex-col">
@@ -77,7 +79,7 @@ const MapView: React.FC = () => {
         <Card className="flex-1 overflow-hidden">
           <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
-              center={center}
+              center={centerPosition}
               zoom={2}
               scrollWheelZoom={true}
               style={{ height: '100%', width: '100%' }}
@@ -90,10 +92,11 @@ const MapView: React.FC = () => {
               {/* Render markers for each unique location */}
               {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
                 const [lat, lng] = key.split(',').map(Number);
+                const position: [number, number] = [lat, lng];
                 return (
                   <Marker 
                     key={key} 
-                    position={[lat, lng]}
+                    position={position}
                   >
                     <Popup>
                       <div className="max-w-xs">
