@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
 import { Location } from '../../types/souvenir';
 import { Map, Calendar, ChevronDown, Save, MapPin } from 'lucide-react';
@@ -20,14 +20,19 @@ import { Input } from '../ui/input';
 
 const AddSouvenir: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addSouvenir, loading } = useSouvenirs();
+  
+  // Parse URL search params to get tripId if present
+  const searchParams = new URLSearchParams(location.search);
+  const tripId = searchParams.get('tripId');
   
   // Use custom hook for image handling
   const { imageUrls, imageFiles, images, handleImageChange, removeImage } = useImageUpload();
   
   // Form state
   const [name, setName] = useState('');
-  const [location, setLocation] = useState<Location>({
+  const [souvenirLocation, setLocation] = useState<Location>({
     country: '',
     city: '',
     address: '',
@@ -122,7 +127,7 @@ const AddSouvenir: React.FC = () => {
       return;
     }
     
-    if (!location.country || !location.city) {
+    if (!souvenirLocation.country || !souvenirLocation.city) {
       toast({
         title: "Error",
         description: "Please set a location for your souvenir",
@@ -143,10 +148,10 @@ const AddSouvenir: React.FC = () => {
     try {
       setSubmitting(true);
       
-      let locationWithCoords = location;
+      let locationWithCoords = souvenirLocation;
       
-      if (location.latitude === 0 && location.longitude === 0) {
-        const coords = await searchLocation(location.address, location.city, location.country);
+      if (souvenirLocation.latitude === 0 && souvenirLocation.longitude === 0) {
+        const coords = await searchLocation(souvenirLocation.address, souvenirLocation.city, souvenirLocation.country);
         if (coords) {
           locationWithCoords = coords;
         } else {
@@ -163,7 +168,8 @@ const AddSouvenir: React.FC = () => {
         dateAcquired: date.toISOString(),
         categories: selectedCategories.length > 0 ? selectedCategories : ['Other'],
         notes,
-        images
+        images,
+        tripId: tripId || undefined
       });
       
       toast({
@@ -171,7 +177,13 @@ const AddSouvenir: React.FC = () => {
         description: "Souvenir added to your collection",
       });
       
-      navigate('/collection');
+      // If we have a tripId, redirect back to that trip details page
+      if (tripId) {
+        navigate(`/trip/${tripId}`);
+      } else {
+        // Otherwise, redirect to the main collection
+        navigate('/collection');
+      }
     } catch (error: any) {
       console.error('Error adding souvenir:', error);
       toast({
@@ -203,7 +215,7 @@ const AddSouvenir: React.FC = () => {
                 <input
                   type="text"
                   id="address"
-                  value={location.address || ''}
+                  value={souvenirLocation.address || ''}
                   onChange={(e) => setLocation(prev => ({ ...prev, address: e.target.value }))}
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
                   placeholder="e.g. 123 Main St, Paris, France"
@@ -217,7 +229,7 @@ const AddSouvenir: React.FC = () => {
                 <input
                   type="text"
                   id="city"
-                  value={location.city}
+                  value={souvenirLocation.city}
                   onChange={(e) => setLocation(prev => ({ ...prev, city: e.target.value }))}
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
                   placeholder="e.g. Paris"
@@ -231,7 +243,7 @@ const AddSouvenir: React.FC = () => {
                 <input
                   type="text"
                   id="country"
-                  value={location.country}
+                  value={souvenirLocation.country}
                   onChange={(e) => setLocation(prev => ({ ...prev, country: e.target.value }))}
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
                   placeholder="e.g. France"
@@ -255,7 +267,7 @@ const AddSouvenir: React.FC = () => {
                   <Button
                     type="button"
                     onClick={async () => {
-                      if (!location.country || !location.city) {
+                      if (!souvenirLocation.country || !souvenirLocation.city) {
                         toast({
                           title: "Error",
                           description: "Please enter both city and country",
@@ -265,12 +277,12 @@ const AddSouvenir: React.FC = () => {
                       }
                       
                       try {
-                        const coords = await searchLocation(location.address, location.city, location.country);
+                        const coords = await searchLocation(souvenirLocation.address, souvenirLocation.city, souvenirLocation.country);
                         if (coords) {
                           handleLocationSelect(coords);
                         } else {
                           handleLocationSelect({
-                            ...location,
+                            ...souvenirLocation,
                             latitude: 0,
                             longitude: 0
                           });
@@ -283,13 +295,13 @@ const AddSouvenir: React.FC = () => {
                       } catch (error) {
                         console.error("Error getting coordinates:", error);
                         handleLocationSelect({
-                          ...location,
+                          ...souvenirLocation,
                           latitude: 0,
                           longitude: 0
                         });
                       }
                     }}
-                    disabled={!location.country || !location.city}
+                    disabled={!souvenirLocation.country || !souvenirLocation.city}
                   >
                     Set Location
                   </Button>
@@ -305,10 +317,12 @@ const AddSouvenir: React.FC = () => {
   return (
     <div className="max-w-md mx-auto p-4 pb-24">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-medium">Add Souvenir</h1>
+        <h1 className="text-2xl font-medium">
+          {tripId ? 'Add Trip Souvenir' : 'Add Souvenir'}
+        </h1>
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => tripId ? navigate(`/trip/${tripId}`) : navigate(-1)}
           className="text-sm text-muted-foreground"
         >
           Cancel
@@ -337,7 +351,7 @@ const AddSouvenir: React.FC = () => {
         />
         
         <LocationInput 
-          location={location}
+          location={souvenirLocation}
           setLocation={setLocation}
           showLocationModal={showLocationModal}
           setShowLocationModal={setShowLocationModal}
