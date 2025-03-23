@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
@@ -14,8 +13,6 @@ import ImageUpload from './ImageUpload';
 import LocationInput from './LocationInput';
 import CategorySelection from './CategorySelection';
 import DateSelection from './DateSelection';
-import { Calendar as CalendarComponent } from '../ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Button } from '../ui/button';
 import { toast } from '../ui/use-toast';
 import { Label } from '../ui/label';
@@ -43,7 +40,6 @@ const AddSouvenir: React.FC = () => {
   
   // UI state
   const [showLocationModal, setShowLocationModal] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   
   const toggleCategory = (category: string) => {
@@ -349,8 +345,7 @@ const AddSouvenir: React.FC = () => {
         
         <DateSelection 
           date={date}
-          setShowDatePicker={setShowDatePicker}
-          showDatePicker={showDatePicker}
+          setDate={setDate}
         />
         
         <CategorySelection 
@@ -383,36 +378,6 @@ const AddSouvenir: React.FC = () => {
           </Button>
         </div>
       </form>
-      
-      {showDatePicker && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg overflow-hidden">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-medium">Pick a Date</h2>
-            </div>
-            
-            <CalendarComponent
-              mode="single"
-              selected={date || undefined}
-              onSelect={(date) => {
-                setDate(date);
-                setShowDatePicker(false);
-              }}
-              className="rounded-none"
-            />
-            
-            <div className="p-4 border-t flex justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowDatePicker(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
       
       {renderLocationModal()}
     </div>
