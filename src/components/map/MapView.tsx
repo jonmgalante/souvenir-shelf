@@ -67,10 +67,11 @@ const MapView: React.FC = () => {
   const center = getMapCenter();
   const defaultCenter: [number, number] = [center.lat, center.lng];
 
-  // Create marker elements outside of MapContainer
+  // Create marker elements before rendering
   const markerElements = Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
     const [lat, lng] = key.split(',').map(Number);
     const position: [number, number] = [lat, lng];
+    
     return (
       <Marker 
         key={key} 
