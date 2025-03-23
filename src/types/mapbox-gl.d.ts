@@ -44,6 +44,18 @@ declare module 'mapbox-gl' {
     constructor(options?: { showCompass?: boolean; showZoom?: boolean; visualizePitch?: boolean });
   }
 
+  export interface TouchZoomRotateHandler {
+    enable(): void;
+    disable(): void;
+    isEnabled(): boolean;
+  }
+
+  export interface TouchPitchHandler {
+    enable(): void;
+    disable(): void;
+    isEnabled(): boolean;
+  }
+
   export class Map {
     constructor(options: MapboxOptions);
     addControl(control: any, position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'): this;
@@ -56,6 +68,8 @@ declare module 'mapbox-gl' {
     easeTo(options: { center?: { lng: number; lat: number }; zoom?: number; duration?: number; easing?: (t: number) => number }): this;
     remove(): void;
     loaded(): boolean;
+    touchZoomRotate: TouchZoomRotateHandler;
+    touchPitch: TouchPitchHandler;
   }
 
   export class Marker {
@@ -67,8 +81,15 @@ declare module 'mapbox-gl' {
     getPopup(): Popup;
   }
 
+  export interface PopupOptions {
+    offset?: number | Point | { [key: string]: [number, number] };
+    closeButton?: boolean;
+    closeOnClick?: boolean;
+    maxWidth?: string;
+  }
+
   export class Popup {
-    constructor(options?: { offset?: number | Point | { [key: string]: [number, number] }; closeButton?: boolean; closeOnClick?: boolean });
+    constructor(options?: PopupOptions);
     setDOMContent(htmlNode: Node): this;
     on(type: string, listener: (e?: any) => void): this;
   }

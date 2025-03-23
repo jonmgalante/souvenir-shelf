@@ -1,9 +1,7 @@
-
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { Card } from '../ui/card';
 import { useNavigate } from 'react-router-dom';
-import { Globe } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -81,8 +79,12 @@ const MapView: React.FC = () => {
       }
       
       // Add enhanced touch interactions for mobile
-      map.current.touchZoomRotate.enable();
-      map.current.touchPitch.enable();
+      if (map.current.touchZoomRotate) {
+        map.current.touchZoomRotate.enable();
+      }
+      if (map.current.touchPitch) {
+        map.current.touchPitch.enable();
+      }
     }
 
     // Set up automatic globe rotation
@@ -261,8 +263,7 @@ const MapView: React.FC = () => {
       const popup = new mapboxgl.Popup({ 
         offset: 25,
         closeButton: true, 
-        closeOnClick: false,
-        maxWidth: '300px'
+        closeOnClick: false
       }).setDOMContent(popupContent);
       
       const marker = new mapboxgl.Marker(el)
