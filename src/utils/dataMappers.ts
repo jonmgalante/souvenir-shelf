@@ -28,8 +28,10 @@ export const mapDbTripToTrip = (dbTrip: any): Trip => {
     id: dbTrip.id,
     userId: dbTrip.user_id,
     name: dbTrip.name,
-    startDate: dbTrip.start_date,
-    endDate: dbTrip.end_date,
+    dateRange: {
+      start: dbTrip.start_date,
+      end: dbTrip.end_date
+    },
     coverImage: dbTrip.cover_image || ''
   };
 };
