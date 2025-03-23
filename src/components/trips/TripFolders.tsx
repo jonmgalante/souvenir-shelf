@@ -1,8 +1,11 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip } from '../../context/souvenir';
-import { FolderPlus, Calendar, Plus, X } from 'lucide-react';
+import { FolderPlus, Calendar, Plus, X, Upload } from 'lucide-react';
 import { format } from 'date-fns';
+import { useImageUpload } from '../../hooks/useImageUpload';
+import { Button } from '../ui/button';
 
 const TripFolders: React.FC = () => {
   const { trips, souvenirs, addTrip } = useSouvenirs();
@@ -12,6 +15,7 @@ const TripFolders: React.FC = () => {
   const [newTripName, setNewTripName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const { imageUrls, handleImageChange, removeImage } = useImageUpload();
   
   const getSouvenirCount = (tripId: string) => {
     return souvenirs.filter(s => s.tripId === tripId).length;
@@ -28,7 +32,9 @@ const TripFolders: React.FC = () => {
         start: startDate,
         end: endDate,
       },
-      coverImage: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1000&auto=format&fit=crop',
+      coverImage: imageUrls.length > 0 
+        ? imageUrls[0] 
+        : 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1000&auto=format&fit=crop',
     });
     
     setNewTripName('');
@@ -88,6 +94,49 @@ const TripFolders: React.FC = () => {
                   className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 />
               </div>
+            </div>
+            
+            <div className="border border-dashed border-input p-4 rounded-lg">
+              <label htmlFor="coverImage" className="block text-sm font-medium mb-2">Cover Image</label>
+              {imageUrls.length > 0 ? (
+                <div className="relative w-full aspect-video mb-2">
+                  <img 
+                    src={imageUrls[0]} 
+                    alt="Trip cover" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(0)}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 bg-muted/40 rounded-lg mb-2">
+                  <Upload className="h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Upload a cover image for your trip</p>
+                </div>
+              )}
+              <input
+                id="coverImage"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              {imageUrls.length === 0 && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full" 
+                  onClick={() => document.getElementById('coverImage')?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Select Image
+                </Button>
+              )}
             </div>
             
             <div className="flex justify-end">

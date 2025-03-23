@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip, Souvenir } from '../../context/souvenir';
-import { ArrowLeft, Calendar, Map, Plus, List } from 'lucide-react';
+import { ArrowLeft, Calendar, Map, Plus, List, Upload, X, Camera, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import SouvenirCard from '../souvenirs/SouvenirCard';
 import { Button } from '../ui/button';
@@ -11,18 +11,23 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { toast } from '../ui/use-toast';
 import { ScrollArea } from '../ui/scroll-area';
+import { useImageUpload } from '../../hooks/useImageUpload';
 
 const TripDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { trips, souvenirs, loading, updateSouvenir } = useSouvenirs();
+  const { trips, souvenirs, loading, updateSouvenir, updateTrip } = useSouvenirs();
   const navigate = useNavigate();
   
   const [trip, setTrip] = useState<Trip | undefined>(undefined);
   const [tripSouvenirs, setTripSouvenirs] = useState<Souvenir[]>([]);
   const [otherSouvenirs, setOtherSouvenirs] = useState<Souvenir[]>([]);
   const [isAddExistingOpen, setIsAddExistingOpen] = useState(false);
+  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingToTrip, setIsAddingToTrip] = useState(false);
+  const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
+  
+  const { imageUrls, handleImageChange, removeImage } = useImageUpload();
   
   useEffect(() => {
     if (!loading && trips.length > 0 && id) {
@@ -67,6 +72,37 @@ const TripDetail: React.FC = () => {
       });
     } finally {
       setIsAddingToTrip(false);
+    }
+  };
+  
+  const handleUpdateTripPhoto = async () => {
+    if (!trip || !id || imageUrls.length === 0) return;
+    
+    try {
+      setIsUpdatingPhoto(true);
+      
+      await updateTrip(id, { coverImage: imageUrls[0] });
+      
+      // Update local state
+      setTrip({...trip, coverImage: imageUrls[0]});
+      
+      toast({
+        title: "Trip photo updated",
+        description: "Your trip photo has been updated successfully.",
+      });
+      
+      // Close the dialog
+      setIsPhotoDialogOpen(false);
+      
+    } catch (error) {
+      console.error('Error updating trip photo:', error);
+      toast({
+        title: "Error updating photo",
+        description: "There was a problem updating the trip photo.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingPhoto(false);
     }
   };
   
@@ -133,17 +169,23 @@ const TripDetail: React.FC = () => {
       </div>
       
       <div 
-        className="w-full h-48 md:h-64 lg:h-80 rounded-lg bg-muted mb-6 relative overflow-hidden"
+        className="w-full h-48 md:h-64 lg:h-80 rounded-lg bg-muted mb-6 relative overflow-hidden cursor-pointer group"
         style={{
           backgroundImage: `url(${trip.coverImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
+        onClick={() => setIsPhotoDialogOpen(true)}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
           <div className="flex items-center space-x-2 text-sm">
             <Calendar className="h-4 w-4" />
             <span>{formattedDateRange}</span>
+          </div>
+        </div>
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <div className="bg-white/80 text-black p-2 rounded-full">
+            <Pencil className="h-6 w-6" />
           </div>
         </div>
       </div>
@@ -260,6 +302,85 @@ const TripDetail: React.FC = () => {
                 </p>
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Dialog for changing trip photo */}
+      <Dialog open={isPhotoDialogOpen} onOpenChange={setIsPhotoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Change trip photo</DialogTitle>
+            <DialogDescription>
+              Upload a new cover image for your trip.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="border border-dashed border-input p-4 rounded-lg">
+              {imageUrls.length > 0 ? (
+                <div className="relative w-full aspect-video">
+                  <img 
+                    src={imageUrls[0]} 
+                    alt="New trip cover" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(0)}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 bg-muted/40 rounded-lg">
+                  <Camera className="h-10 w-10 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Upload a new cover image</p>
+                  <div className="mt-4">
+                    <label 
+                      htmlFor="trip-cover" 
+                      className="cursor-pointer px-4 py-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center"
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Select Photo
+                      <input
+                        id="trip-cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  removeImage(0);
+                  setIsPhotoDialogOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                disabled={imageUrls.length === 0 || isUpdatingPhoto}
+                onClick={handleUpdateTripPhoto}
+              >
+                {isUpdatingPhoto ? (
+                  <>
+                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
+                    Updating...
+                  </>
+                ) : (
+                  <>Save Changes</>
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
