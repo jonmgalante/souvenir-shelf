@@ -22,7 +22,7 @@ interface LatLng {
 }
 
 // Component to update the map center when it changes
-const MapCenterUpdater = ({ center }: { center: LatLng }) => {
+function MapCenterUpdater({ center }: { center: LatLng }) {
   const map = useMap();
   
   useEffect(() => {
@@ -30,7 +30,7 @@ const MapCenterUpdater = ({ center }: { center: LatLng }) => {
   }, [center, map]);
   
   return null;
-};
+}
 
 const MapView: React.FC = () => {
   const { souvenirs, loading } = useSouvenirs();
@@ -88,17 +88,17 @@ const MapView: React.FC = () => {
       ) : (
         <Card className="flex-1 overflow-hidden">
           <div style={{ height: '100%', width: '100%' }}>
-            <MapContainer
+            <MapContainer 
               center={defaultCenter}
               zoom={2}
               scrollWheelZoom={true}
               style={{ height: '100%', width: '100%' }}
             >
-              <MapCenterUpdater center={center} />
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
+              <MapCenterUpdater center={center} />
               
               {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
                 const [lat, lng] = key.split(',').map(Number);
