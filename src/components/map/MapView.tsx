@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -32,7 +32,7 @@ const MapView: React.FC = () => {
   // Calculate map bounds or default center
   const getMapCenter = () => {
     if (souvenirs.length === 0) {
-      return [20, 0]; // Default center if no souvenirs
+      return { lat: 20, lng: 0 }; // Default center if no souvenirs
     }
     
     // Calculate average of all coordinates
@@ -45,7 +45,7 @@ const MapView: React.FC = () => {
       { lat: 0, lng: 0 }
     );
     
-    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length];
+    return { lat: sum.lat / souvenirs.length, lng: sum.lng / souvenirs.length };
   };
 
   if (loading) {
@@ -72,7 +72,7 @@ const MapView: React.FC = () => {
           <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
               style={{ height: '100%', width: '100%' }}
-              center={center as [number, number]}
+              center={[center.lat, center.lng]}
               zoom={2}
               scrollWheelZoom={true}
             >
