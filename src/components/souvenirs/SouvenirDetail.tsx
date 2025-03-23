@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
@@ -35,6 +36,13 @@ const SouvenirDetail: React.FC = () => {
   
   const souvenir = getSouvenirById(id || '');
   
+  // Using useEffect to reset image errors when souvenir changes - moved this before the early return
+  useEffect(() => {
+    // Reset image errors when souvenir changes
+    setImageErrors({});
+    setCurrentImageIndex(0);
+  }, [id]);
+  
   if (!souvenir) {
     return (
       <div className="souvenir-container flex items-center justify-center min-h-screen">
@@ -44,12 +52,6 @@ const SouvenirDetail: React.FC = () => {
   }
   
   const { name, images, location, dateAcquired, categories, notes } = souvenir;
-  
-  useEffect(() => {
-    // Reset image errors when souvenir changes
-    setImageErrors({});
-    setCurrentImageIndex(0);
-  }, [id]);
   
   const handleImageError = (index: number) => {
     console.log(`Image at index ${index} failed to load for souvenir: ${name}`, images);
