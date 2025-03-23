@@ -33,19 +33,21 @@ const SouvenirGrid: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
-      <div className="mb-4">
-        <h1 className="text-2xl font-serif font-medium">Your Collection</h1>
-        <p className="text-muted-foreground">
-          Memories from {uniqueCountriesCount} {uniqueCountriesCount === 1 ? 'country' : 'countries'} around the world
-        </p>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-xl font-medium">Your Collection</h1>
+          <p className="text-muted-foreground text-sm">
+            Memories from {uniqueCountriesCount} {uniqueCountriesCount === 1 ? 'country' : 'countries'} around the world
+          </p>
+        </div>
+        
+        <FilterBar 
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          showFilters={showFilters}
+          setShowFilters={setShowFilters}
+        />
       </div>
-      
-      <FilterBar 
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        showFilters={showFilters}
-        setShowFilters={setShowFilters}
-      />
       
       {/* Filters */}
       {showFilters && (
