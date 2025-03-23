@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Create a type for LatLng
+// Define type for LatLng
 interface LatLng {
   lat: number;
   lng: number;
@@ -77,14 +77,14 @@ const MapView: React.FC = () => {
         <Card className="flex-1 overflow-hidden">
           <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
-              style={{ height: '100%', width: '100%' }}
-              center={[center.lat, center.lng] as L.LatLngExpression}
+              center={center}
               zoom={2}
               scrollWheelZoom={true}
+              style={{ height: '100%', width: '100%' }}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
               
               {/* Render markers for each unique location */}
@@ -93,7 +93,7 @@ const MapView: React.FC = () => {
                 return (
                   <Marker 
                     key={key} 
-                    position={[lat, lng] as L.LatLngExpression}
+                    position={[lat, lng]}
                   >
                     <Popup>
                       <div className="max-w-xs">
