@@ -20,6 +20,7 @@ declare module 'react-leaflet' {
   export interface MarkerProps {
     position: L.LatLngExpression;
     children?: ReactNode;
+    key?: string | number;
   }
 
   export interface PopupProps {
@@ -27,4 +28,9 @@ declare module 'react-leaflet' {
   }
   
   export function useMap(): L.Map;
+  
+  export const MapContainer: React.FC<MapContainerProps>;
+  export const TileLayer: React.FC<TileLayerProps>;
+  export const Marker: React.FC<MarkerProps>;
+  export const Popup: React.FC<PopupProps>;
 }

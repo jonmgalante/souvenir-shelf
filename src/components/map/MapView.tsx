@@ -1,11 +1,12 @@
 
 import React, { useEffect } from 'react';
 import { useSouvenirs } from '../../context/souvenir';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Card } from '../ui/card';
 import { useNavigate } from 'react-router-dom';
+import MapCenter from './MapCenter';
 
 // Fix Leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,17 +20,6 @@ L.Icon.Default.mergeOptions({
 interface LatLng {
   lat: number;
   lng: number;
-}
-
-// Component to update the map center when it changes
-function MapCenterUpdater({ center }: { center: LatLng }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    map.setView([center.lat, center.lng], map.getZoom());
-  }, [center, map]);
-  
-  return null;
 }
 
 const MapView: React.FC = () => {
@@ -98,7 +88,8 @@ const MapView: React.FC = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
-              <MapCenterUpdater center={center} />
+              
+              <MapCenter center={center} />
               
               {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
                 const [lat, lng] = key.split(',').map(Number);
