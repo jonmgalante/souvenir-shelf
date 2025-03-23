@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip } from '../../context/souvenir';
@@ -41,7 +40,7 @@ const TripFolders: React.FC = () => {
   return (
     <div className="souvenir-container animate-fade-in">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="page-title">Trip Folders</h1>
+        <h1 className="page-title">Trips</h1>
         <button
           onClick={() => setShowAddTrip(!showAddTrip)}
           className={`p-2 rounded-full transition-colors ${
