@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip, Souvenir } from '../../context/souvenir';
@@ -11,7 +10,8 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { toast } from '../ui/use-toast';
 import { ScrollArea } from '../ui/scroll-area';
-import { useImageUpload } from '../../hooks/useImageUpload';
+import { useImageUploadWithCrop } from '../../hooks/useImageUploadWithCrop';
+import ImageCropper from '../common/ImageCropper';
 
 const TripDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +27,16 @@ const TripDetail: React.FC = () => {
   const [isAddingToTrip, setIsAddingToTrip] = useState(false);
   const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
   
-  const { imageUrls, handleImageChange, removeImage } = useImageUpload();
+  const { 
+    imageUrls, 
+    handleImageChange, 
+    removeImage,
+    showCropper,
+    setShowCropper,
+    imageToEdit,
+    setImageToEdit,
+    handleCropComplete
+  } = useImageUploadWithCrop();
   
   useEffect(() => {
     if (!loading && trips.length > 0 && id) {
@@ -38,7 +47,6 @@ const TripDetail: React.FC = () => {
         const filteredSouvenirs = souvenirs.filter(s => s.tripId === id);
         setTripSouvenirs(filteredSouvenirs);
         
-        // Find souvenirs that aren't already associated with this trip
         const availableSouvenirs = souvenirs.filter(s => !s.tripId || s.tripId !== id);
         setOtherSouvenirs(availableSouvenirs);
       }
@@ -57,11 +65,9 @@ const TripDetail: React.FC = () => {
         description: `${souvenir.name} has been added to this trip.`,
       });
       
-      // Update local state
       setTripSouvenirs(prev => [...prev, {...souvenir, tripId: id}]);
       setOtherSouvenirs(prev => prev.filter(s => s.id !== souvenir.id));
       
-      // Close the dialog
       setIsAddExistingOpen(false);
     } catch (error) {
       console.error('Error adding existing souvenir to trip:', error);
@@ -83,7 +89,6 @@ const TripDetail: React.FC = () => {
       
       await updateTrip(id, { coverImage: imageUrls[0] });
       
-      // Update local state
       setTrip({...trip, coverImage: imageUrls[0]});
       
       toast({
@@ -91,7 +96,6 @@ const TripDetail: React.FC = () => {
         description: "Your trip photo has been updated successfully.",
       });
       
-      // Close the dialog
       setIsPhotoDialogOpen(false);
       
     } catch (error) {
@@ -106,8 +110,12 @@ const TripDetail: React.FC = () => {
     }
   };
   
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setImageToEdit(null);
+  };
+  
   const handleCreateNew = () => {
-    // Navigate to add souvenir page with trip ID in search params
     navigate(`/add?tripId=${id}`);
   };
   
@@ -171,7 +179,7 @@ const TripDetail: React.FC = () => {
       <div 
         className="w-full h-48 md:h-64 lg:h-80 rounded-lg bg-muted mb-6 relative overflow-hidden cursor-pointer group"
         style={{
-          backgroundImage: `url(${trip.coverImage})`,
+          backgroundImage: `url(${trip?.coverImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
@@ -246,8 +254,7 @@ const TripDetail: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Dialog for adding existing souvenirs */}
+      
       <Dialog open={isAddExistingOpen} onOpenChange={setIsAddExistingOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -306,7 +313,6 @@ const TripDetail: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Dialog for changing trip photo */}
       <Dialog open={isPhotoDialogOpen} onOpenChange={setIsPhotoDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -325,13 +331,25 @@ const TripDetail: React.FC = () => {
                     alt="New trip cover" 
                     className="w-full h-full object-cover rounded-lg"
                   />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(0)}
-                    className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                  <div className="absolute top-2 right-2 space-x-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageToEdit(imageUrls[0]);
+                        setShowCropper(true);
+                      }}
+                      className="p-1.5 rounded-full bg-black/60 text-white"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeImage(0)}
+                      className="p-1.5 rounded-full bg-black/60 text-white"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-8 bg-muted/40 rounded-lg">
@@ -382,6 +400,16 @@ const TripDetail: React.FC = () => {
               </Button>
             </div>
           </div>
+          
+          {imageToEdit && (
+            <ImageCropper
+              imageUrl={imageToEdit}
+              aspectRatio={16/9}
+              onCropComplete={handleCropComplete}
+              onCancel={handleCropCancel}
+              open={showCropper}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

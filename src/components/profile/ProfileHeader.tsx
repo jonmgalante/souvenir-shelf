@@ -1,10 +1,11 @@
 
-import React from 'react';
-import { User, Camera } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, Camera, Pencil } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import ImageCropper from '../common/ImageCropper';
 
 interface ProfileHeaderProps {
   profileData: {
@@ -25,6 +26,60 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   onEditToggle,
   onPhotoUpload
 }) => {
+  const [tempPhotoUrl, setTempPhotoUrl] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [uploadEvent, setUploadEvent] = useState<React.ChangeEvent<HTMLInputElement> | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setTempPhotoUrl(URL.createObjectURL(file));
+      setUploadEvent(event);
+      setShowCropper(true);
+    }
+  };
+
+  const handleCropComplete = async (croppedImageUrl: string) => {
+    // Convert cropped blob URL to File object
+    const response = await fetch(croppedImageUrl);
+    const blob = await response.blob();
+    
+    // Create a new File from the cropped blob
+    const file = new File([blob], "profile-photo.jpg", { type: 'image/jpeg' });
+    
+    // Create a new event with the cropped file
+    if (uploadEvent) {
+      // Create a new DataTransfer object and add our file
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      
+      // Create a clone of the original event
+      const newEvent = {...uploadEvent} as React.ChangeEvent<HTMLInputElement>;
+      
+      // Set the files property to our DataTransfer files
+      Object.defineProperty(newEvent.target, 'files', {
+        value: dataTransfer.files,
+        writable: false
+      });
+      
+      // Call the original onPhotoUpload with our new event
+      await onPhotoUpload(newEvent);
+    }
+    
+    // Clean up
+    setShowCropper(false);
+    setTempPhotoUrl(null);
+    setUploadEvent(null);
+    setIsDialogOpen(false);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setTempPhotoUrl(null);
+    setUploadEvent(null);
+  };
+
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
       <div className="flex items-center">
@@ -39,7 +94,7 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
             )}
           </Avatar>
           
-          <Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <button className="absolute bottom-0 right-0 bg-primary text-primary-foreground rounded-full p-1 shadow-sm">
                 <Camera className="h-4 w-4" />
@@ -50,16 +105,30 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                 <DialogTitle>Update Profile Photo</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
-                <Input
-                  id="photo"
-                  type="file"
-                  accept="image/*"
-                  onChange={onPhotoUpload}
-                  disabled={loading}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Upload a new profile photo. Max file size: 5MB.
-                </p>
+                {!showCropper && (
+                  <>
+                    <Input
+                      id="photo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      disabled={loading}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Upload a new profile photo. Max file size: 5MB.
+                    </p>
+                  </>
+                )}
+                
+                {tempPhotoUrl && (
+                  <ImageCropper
+                    imageUrl={tempPhotoUrl}
+                    aspectRatio={1}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                    open={showCropper}
+                  />
+                )}
               </div>
             </DialogContent>
           </Dialog>
