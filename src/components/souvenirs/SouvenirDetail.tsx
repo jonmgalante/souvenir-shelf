@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
 import { Map, Calendar, ArrowLeft, Tag, Share2, Edit, MapPin, Trash2 } from 'lucide-react';
@@ -26,6 +25,7 @@ const SouvenirDetail: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
   
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -44,6 +44,25 @@ const SouvenirDetail: React.FC = () => {
   }
   
   const { name, images, location, dateAcquired, categories, notes } = souvenir;
+  
+  useEffect(() => {
+    // Reset image errors when souvenir changes
+    setImageErrors({});
+    setCurrentImageIndex(0);
+  }, [id]);
+  
+  const handleImageError = (index: number) => {
+    console.log(`Image at index ${index} failed to load for souvenir: ${name}`, images);
+    setImageErrors(prev => ({
+      ...prev,
+      [index]: true
+    }));
+    
+    // If the current image failed and there are other images, try the next one
+    if (index === currentImageIndex && images.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }
+  };
   
   // Initialize edit form state with current values
   const openEditDialog = () => {
@@ -118,6 +137,9 @@ const SouvenirDetail: React.FC = () => {
     'Antique', 'Technology', 'Book', 'Toy', 'Decoration', 'Other'
   ];
   
+  const validImages = images.filter((_, index) => !imageErrors[index]);
+  const hasValidImages = validImages.length > 0;
+  
   return (
     <div className="souvenir-container pb-20 animate-fade-in">
       <div className="mb-4 flex items-center justify-between">
@@ -155,13 +177,21 @@ const SouvenirDetail: React.FC = () => {
       
       {/* Image Gallery */}
       <div className="relative aspect-square bg-muted rounded-xl overflow-hidden mb-6">
-        <img
-          src={images[currentImageIndex]}
-          alt={name}
-          className="w-full h-full object-cover animate-fade-in"
-        />
+        {hasValidImages ? (
+          <img
+            src={images[currentImageIndex]}
+            alt={name}
+            className="w-full h-full object-cover animate-fade-in"
+            onError={() => handleImageError(currentImageIndex)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Map className="h-12 w-12 text-muted-foreground opacity-50" />
+            <p className="text-sm text-muted-foreground mt-2">No image available</p>
+          </div>
+        )}
         
-        {images.length > 1 && (
+        {validImages.length > 1 && (
           <>
             <button
               onClick={handlePrevImage}
@@ -179,7 +209,7 @@ const SouvenirDetail: React.FC = () => {
             </button>
             
             <div className="absolute bottom-2 left-0 right-0 flex justify-center space-x-1">
-              {images.map((_, index) => (
+              {validImages.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
@@ -239,7 +269,7 @@ const SouvenirDetail: React.FC = () => {
         </div>
       </div>
       
-      {/* Delete Confirmation Dialog - using AlertDialog instead of Dialog for more robust behavior */}
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
