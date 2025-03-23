@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -27,14 +27,17 @@ const MapView: React.FC = () => {
   const navigate = useNavigate();
   
   // Group souvenirs by location to avoid duplicate markers
-  const locationMap = new Map();
-  souvenirs.forEach(souvenir => {
-    const key = `${souvenir.location.latitude},${souvenir.location.longitude}`;
-    if (!locationMap.has(key)) {
-      locationMap.set(key, []);
-    }
-    locationMap.get(key).push(souvenir);
-  });
+  const locationMap = useMemo(() => {
+    const map = new Map();
+    souvenirs.forEach(souvenir => {
+      const key = `${souvenir.location.latitude},${souvenir.location.longitude}`;
+      if (!map.has(key)) {
+        map.set(key, []);
+      }
+      map.get(key).push(souvenir);
+    });
+    return map;
+  }, [souvenirs]);
 
   // Calculate map bounds or default center
   const getMapCenter = (): LatLng => {

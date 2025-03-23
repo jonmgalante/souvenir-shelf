@@ -9,7 +9,6 @@ interface MapCenterProps {
   };
 }
 
-// Separate component for map center updates
 const MapCenter: React.FC<MapCenterProps> = ({ center }) => {
   const map = useMap();
   
