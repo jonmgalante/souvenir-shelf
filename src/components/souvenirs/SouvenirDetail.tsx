@@ -27,6 +27,7 @@ const SouvenirDetail: React.FC = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+  const [mapImageUrl, setMapImageUrl] = useState<string>('');
   
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -42,6 +43,24 @@ const SouvenirDetail: React.FC = () => {
     setImageErrors({});
     setCurrentImageIndex(0);
   }, [id]);
+
+  // Generate the Mapbox Static Map URL when the souvenir changes
+  useEffect(() => {
+    if (souvenir && souvenir.location) {
+      const { latitude, longitude } = souvenir.location;
+      
+      // Construct the Mapbox Static Map URL
+      // Format: https://api.mapbox.com/styles/v1/{mapbox or username}/{style_id}/static/{overlay}/{lon},{lat},{zoom}/{width}x{height}{@2x}
+      const mapboxToken = 'pk.eyJ1Ijoiam9ubWdhbGFudGUiLCJhIjoiY204a3ltMHh1MHhwczJxcG8yZXRqaDgxZiJ9.mN_EYyrVSLoOB5Pojc_FWQ';
+      const style = 'mapbox/light-v11'; // Using the light-v11 style
+      const pin = `pin-s-circle+555555(${longitude},${latitude})`; // Gray pin at the souvenir's coordinates
+      const center = `${longitude},${latitude},13`; // Center coordinates with zoom level 13
+      const size = '600x300@2x'; // 600x300 image with 2x resolution
+      
+      const url = `https://api.mapbox.com/styles/v1/${style}/static/${pin}/${center}/${size}?access_token=${mapboxToken}`;
+      setMapImageUrl(url);
+    }
+  }, [souvenir]);
   
   if (!souvenir) {
     return (
@@ -260,10 +279,19 @@ const SouvenirDetail: React.FC = () => {
       
       <div>
         <h2 className="text-lg font-medium mb-2">Location</h2>
-        <div className="h-40 bg-muted rounded-lg overflow-hidden relative">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Map className="h-8 w-8 text-muted-foreground opacity-50" />
-          </div>
+        <div className="h-[300px] bg-muted rounded-lg overflow-hidden relative">
+          {mapImageUrl ? (
+            <img 
+              src={mapImageUrl} 
+              alt={`Map of ${location.city}, ${location.country}`}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Map className="h-8 w-8 text-muted-foreground opacity-50" />
+            </div>
+          )}
           <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent text-white">
             <p className="text-sm">{location.city}, {location.country}</p>
             <p className="text-xs opacity-80">Lat: {location.latitude.toFixed(4)}, Long: {location.longitude.toFixed(4)}</p>
