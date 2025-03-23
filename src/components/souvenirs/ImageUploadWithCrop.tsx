@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Camera, Pencil, X, ImageIcon } from 'lucide-react';
 import ImageCropper from '../common/ImageCropper';
 
@@ -24,6 +24,13 @@ const ImageUploadWithCrop: React.FC<ImageUploadWithCropProps> = ({
   onCropComplete,
   onEditImage
 }) => {
+  const [imageErrors, setImageErrors] = useState<{[key: number]: boolean}>({});
+
+  const handleImageError = (index: number) => {
+    setImageErrors(prev => ({ ...prev, [index]: true }));
+    console.error(`Failed to load image at index ${index}`, imageUrls[index]);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -45,25 +52,18 @@ const ImageUploadWithCrop: React.FC<ImageUploadWithCropProps> = ({
           {imageUrls.map((url, index) => (
             <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group">
               <div className="w-full h-full relative">
-                <img
-                  src={url}
-                  alt={`Image ${index + 1}`}
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    console.error(`Failed to load image at index ${index}`, url);
-                    const target = e.target as HTMLImageElement;
-                    // Replace with a placeholder icon
-                    target.style.display = 'none';
-                    const parent = target.parentNode as HTMLElement;
-                    if (parent) {
-                      parent.classList.add('flex', 'items-center', 'justify-center');
-                      const placeholder = document.createElement('div');
-                      placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
-                      placeholder.className = 'flex items-center justify-center w-full h-full';
-                      parent.appendChild(placeholder);
-                    }
-                  }}
-                />
+                {imageErrors[index] ? (
+                  <div className="flex items-center justify-center w-full h-full bg-gray-100">
+                    <ImageIcon className="h-10 w-10 text-gray-400" />
+                  </div>
+                ) : (
+                  <img
+                    src={url}
+                    alt={`Image ${index + 1}`}
+                    className="h-full w-full object-cover"
+                    onError={() => handleImageError(index)}
+                  />
+                )}
               </div>
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <button

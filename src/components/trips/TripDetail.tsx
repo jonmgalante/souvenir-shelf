@@ -57,42 +57,32 @@ const TripDetail: React.FC = () => {
   }, [id, trips, souvenirs, loading]);
 
   useEffect(() => {
+    setImageError(false);
+    
     if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0) {
-      setImageError(false);
-      
-      if (trip.coverImage.startsWith('data:')) {
-        const dataUrl = trip.coverImage;
-        createFileFromDataUrl(dataUrl);
-      } else {
-        loadExternalImage(trip.coverImage);
+      try {
+        loadTripCoverImage(trip.coverImage);
+      } catch (error) {
+        console.error('Failed to load trip cover image:', error);
+        setImageError(true);
       }
     }
   }, [trip, isPhotoDialogOpen, imageUrls.length]);
   
-  const createFileFromDataUrl = (dataUrl: string) => {
-    try {
-      const blob = dataURLtoBlob(dataUrl);
-      const file = new File([blob], 'trip-cover.jpg', { type: 'image/jpeg' });
-      
-      const event = {
-        target: {
-          files: [file]
-        }
-      } as unknown as React.ChangeEvent<HTMLInputElement>;
-      
-      handleImageChange(event);
-    } catch (error) {
-      console.error('Error creating file from data URL:', error);
-      setImageError(true);
-      toast({
-        title: "Error loading image",
-        description: "Could not process the image data.",
-        variant: "destructive",
-      });
+  const loadTripCoverImage = (coverImageUrl: string) => {
+    if (imageError) return;
+    
+    if (coverImageUrl.startsWith('data:')) {
+      try {
+        const file = dataURLtoFile(coverImageUrl, 'trip-cover.jpg');
+        createImageFromFile(file);
+      } catch (error) {
+        console.error('Error creating file from data URL:', error);
+        setImageError(true);
+      }
+      return;
     }
-  };
-  
-  const loadExternalImage = (imageUrl: string) => {
+    
     const img = new Image();
     img.crossOrigin = 'anonymous';
     
@@ -106,52 +96,54 @@ const TripDetail: React.FC = () => {
         if (ctx) {
           ctx.drawImage(img, 0, 0);
           const dataUrl = canvas.toDataURL('image/jpeg');
-          createFileFromDataUrl(dataUrl);
+          const file = dataURLtoFile(dataUrl, 'trip-cover.jpg');
+          createImageFromFile(file);
         }
       } catch (error) {
         console.error('Error processing loaded image:', error);
         setImageError(true);
-        toast({
-          title: "Error processing image",
-          description: "Could not process the loaded image.",
-          variant: "destructive",
-        });
       }
     };
     
-    img.onerror = () => {
-      console.error('Failed to load image from URL:', imageUrl);
+    img.onerror = (e) => {
+      console.error('Failed to load image from URL:', coverImageUrl);
       setImageError(true);
-      toast({
-        title: "Error loading image",
-        description: "Could not load the image from the provided URL.",
-        variant: "destructive",
-      });
     };
     
-    img.src = imageUrl;
+    img.src = coverImageUrl;
   };
   
-  const dataURLtoBlob = (dataURL: string): Blob => {
-    try {
-      const parts = dataURL.split(';base64,');
-      if (parts.length !== 2) {
-        throw new Error('Invalid data URL format');
+  const createImageFromFile = (file: File) => {
+    const event = {
+      target: {
+        files: [file]
       }
-      
-      const contentType = parts[0].split(':')[1] || 'image/jpeg';
-      const raw = window.atob(parts[1]);
-      const uInt8Array = new Uint8Array(raw.length);
-      
-      for (let i = 0; i < raw.length; i++) {
-        uInt8Array[i] = raw.charCodeAt(i);
-      }
-      
-      return new Blob([uInt8Array], { type: contentType });
-    } catch (error) {
-      console.error('Error converting data URL to blob:', error);
-      throw error;
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
+    
+    handleImageChange(event);
+  };
+  
+  const dataURLtoFile = (dataURL: string, filename: string): File => {
+    const arr = dataURL.split(',');
+    if (arr.length !== 2) {
+      throw new Error('Invalid data URL format');
     }
+    
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch || mimeMatch.length < 2) {
+      throw new Error('Could not extract MIME type from data URL');
+    }
+    
+    const mime = mimeMatch[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    
+    return new File([u8arr], filename, { type: mime });
   };
   
   const addExistingSouvenir = async (souvenir: Souvenir) => {
@@ -188,9 +180,13 @@ const TripDetail: React.FC = () => {
     try {
       setIsUpdatingPhoto(true);
       
-      await updateTrip(id, { coverImage: imageUrls[0] });
+      const imageUrl = imageUrls[0];
+      console.log("Updating trip photo with URL:", imageUrl);
       
-      setTrip({...trip, coverImage: imageUrls[0]});
+      await updateTrip(id, { coverImage: imageUrl });
+      
+      setTrip({...trip, coverImage: imageUrl});
+      setImageError(false);
       
       toast({
         title: "Trip photo updated",
@@ -268,18 +264,14 @@ const TripDetail: React.FC = () => {
   const formattedDateRange = `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
   
   const isValidCoverImage = 
+    !imageError && 
     trip.coverImage && 
     typeof trip.coverImage === 'string' && 
-    trip.coverImage.trim() !== '' &&
-    !imageError;
+    trip.coverImage.trim() !== '';
   
   const coverImageStyle = isValidCoverImage
     ? { backgroundImage: `url(${trip.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
     : { backgroundColor: '#f0f0f0' };
-  
-  const handleImageLoadError = () => {
-    setImageError(true);
-  };
   
   return (
     <div className="souvenir-container animate-fade-in pb-24">
@@ -293,23 +285,29 @@ const TripDetail: React.FC = () => {
       <div 
         className="w-full h-48 md:h-64 lg:h-80 rounded-lg bg-muted mb-6 relative overflow-hidden cursor-pointer group"
         style={coverImageStyle}
+        onClick={handleEditImage}
       >
+        {!isValidCoverImage && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="text-center">
+              <Camera className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-muted-foreground">Click to add a cover photo</p>
+            </div>
+          </div>
+        )}
+        
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
           <div className="flex items-center space-x-2 text-sm">
             <Calendar className="h-4 w-4" />
             <span>{formattedDateRange}</span>
           </div>
         </div>
+        
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <div className="bg-white/80 text-black p-2 rounded-full">
             <Pencil className="h-6 w-6" />
           </div>
         </div>
-        <button 
-          className="absolute inset-0 w-full h-full opacity-0"
-          onClick={handleEditImage}
-          aria-label="Edit trip photo"
-        ></button>
       </div>
       
       <div className="flex items-center justify-between mb-4">
@@ -496,3 +494,4 @@ const TripDetail: React.FC = () => {
 };
 
 export default TripDetail;
+
