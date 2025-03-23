@@ -11,7 +11,7 @@ import { Label } from '../ui/label';
 import { toast } from '../ui/use-toast';
 import { ScrollArea } from '../ui/scroll-area';
 import { useImageUploadWithCrop } from '../../hooks/useImageUploadWithCrop';
-import ImageCropper from '../common/ImageCropper';
+import ImageUploadWithCrop from '../souvenirs/ImageUploadWithCrop';
 
 const TripDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,15 +26,18 @@ const TripDetail: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingToTrip, setIsAddingToTrip] = useState(false);
   const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
+  const [editingExistingImage, setEditingExistingImage] = useState(false);
   
   const { 
     imageUrls, 
-    handleImageChange, 
+    handleImageChange,
     removeImage,
     showCropper,
     setShowCropper,
     imageToEdit,
     setImageToEdit,
+    currentEditIndex,
+    setCurrentEditIndex,
     handleCropComplete
   } = useImageUploadWithCrop();
   
@@ -52,6 +55,27 @@ const TripDetail: React.FC = () => {
       }
     }
   }, [id, trips, souvenirs, loading]);
+
+  useEffect(() => {
+    if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0 && editingExistingImage) {
+      fetch(trip.coverImage)
+        .then(response => response.blob())
+        .then(blob => {
+          const file = new File([blob], 'current-cover.jpg', { type: 'image/jpeg' });
+          const event = {
+            target: {
+              files: [file]
+            }
+          } as unknown as React.ChangeEvent<HTMLInputElement>;
+          handleImageChange(event);
+          setEditingExistingImage(false);
+        })
+        .catch(error => {
+          console.error('Error loading current image:', error);
+          setEditingExistingImage(false);
+        });
+    }
+  }, [trip, isPhotoDialogOpen, imageUrls.length, editingExistingImage, handleImageChange]);
   
   const addExistingSouvenir = async (souvenir: Souvenir) => {
     try {
@@ -110,9 +134,9 @@ const TripDetail: React.FC = () => {
     }
   };
   
-  const handleCropCancel = () => {
-    setShowCropper(false);
-    setImageToEdit(null);
+  const handleEditExistingImage = () => {
+    setEditingExistingImage(true);
+    setIsPhotoDialogOpen(true);
   };
   
   const handleCreateNew = () => {
@@ -183,7 +207,7 @@ const TripDetail: React.FC = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
-        onClick={() => setIsPhotoDialogOpen(true)}
+        onClick={handleEditExistingImage}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
           <div className="flex items-center space-x-2 text-sm">
@@ -313,67 +337,39 @@ const TripDetail: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={isPhotoDialogOpen} onOpenChange={setIsPhotoDialogOpen}>
+      <Dialog open={isPhotoDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          setIsPhotoDialogOpen(false);
+          setEditingExistingImage(false);
+          removeImage(0);
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Change trip photo</DialogTitle>
+            <DialogTitle>Trip Photo</DialogTitle>
             <DialogDescription>
-              Upload a new cover image for your trip.
+              Edit or upload a new cover image for your trip.
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4 space-y-4">
-            <div className="border border-dashed border-input p-4 rounded-lg">
-              {imageUrls.length > 0 ? (
-                <div className="relative w-full aspect-video">
-                  <img 
-                    src={imageUrls[0]} 
-                    alt="New trip cover" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                  <div className="absolute top-2 right-2 space-x-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImageToEdit(imageUrls[0]);
-                        setShowCropper(true);
-                      }}
-                      className="p-1.5 rounded-full bg-black/60 text-white"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeImage(0)}
-                      className="p-1.5 rounded-full bg-black/60 text-white"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 bg-muted/40 rounded-lg">
-                  <Camera className="h-10 w-10 text-muted-foreground mb-2" />
-                  <p className="text-sm text-muted-foreground">Upload a new cover image</p>
-                  <div className="mt-4">
-                    <label 
-                      htmlFor="trip-cover" 
-                      className="cursor-pointer px-4 py-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors flex items-center"
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Select Photo
-                      <input
-                        id="trip-cover"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
-            </div>
+            <ImageUploadWithCrop
+              imageUrls={imageUrls}
+              handleImageChange={handleImageChange}
+              removeImage={removeImage}
+              showCropper={showCropper}
+              imageToEdit={imageToEdit}
+              onCropCancel={() => {
+                setShowCropper(false);
+                setImageToEdit(null);
+              }}
+              onCropComplete={handleCropComplete}
+              onEditImage={(index) => {
+                setImageToEdit(imageUrls[index]);
+                setCurrentEditIndex(index);
+                setShowCropper(true);
+              }}
+            />
             
             <div className="flex justify-end gap-2">
               <Button 
@@ -400,16 +396,6 @@ const TripDetail: React.FC = () => {
               </Button>
             </div>
           </div>
-          
-          {imageToEdit && (
-            <ImageCropper
-              imageUrl={imageToEdit}
-              aspectRatio={16/9}
-              onCropComplete={handleCropComplete}
-              onCancel={handleCropCancel}
-              open={showCropper}
-            />
-          )}
         </DialogContent>
       </Dialog>
     </div>
