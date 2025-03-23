@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { Card } from '../ui/card';
@@ -32,118 +33,137 @@ const MapView: React.FC = () => {
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      projection: 'globe',
-      zoom: 1.3,         // Slightly lower zoom level to see more of the globe
-      center: [0, 0],    // Center the globe in the viewport
-      pitch: 0,          // Reduced pitch to zero for a centered view
-      attributionControl: false
-    });
+    // Check if mapbox-gl is supported in this browser
+    if (!mapboxgl.supported()) {
+      console.error('MapboxGL is not supported in this browser');
+      return;
+    }
 
-    // Add navigation controls to the map
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    console.log('Initializing Mapbox map with container:', mapContainer.current);
     
-    // Add atmosphere and fog effects
-    map.current.on('style.load', () => {
-      map.current?.setFog({
-        color: 'rgb(255, 255, 255)',
-        'high-color': 'rgb(200, 200, 225)',
-        'horizon-blend': 0.2,
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        projection: 'globe',
+        zoom: 1.3,         // Slightly lower zoom level to see more of the globe
+        center: [0, 0],    // Center the globe in the viewport
+        pitch: 0,          // Reduced pitch to zero for a centered view
+        attributionControl: false
+      });
+
+      console.log('Map created successfully');
+
+      // Add navigation controls to the map
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      
+      // Add atmosphere and fog effects
+      map.current.on('style.load', () => {
+        console.log('Map style loaded');
+        if (map.current) {
+          map.current.setFog({
+            color: 'rgb(255, 255, 255)',
+            'high-color': 'rgb(200, 200, 225)',
+            'horizon-blend': 0.2,
+          });
+          
+          // Set the atmosphere property for a globe-style view
+          const mapboxMap = map.current as any;
+          if (mapboxMap.setTerrain) {
+            mapboxMap.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+          }
+          if (mapboxMap.setAtmosphere) {
+            mapboxMap.setAtmosphere({
+              'color': 'rgb(186, 210, 235)',
+              'high-color': 'rgb(36, 92, 223)',
+              'horizon-blend': 0.02,
+              'space-color': 'rgb(11, 11, 25)',
+              'star-intensity': 0.4
+            });
+          }
+        }
+      });
+
+      // Optimize for mobile - improve touch handling
+      if ('ontouchstart' in window) {
+        // Set touch action to allow default touch behavior
+        if (mapContainer.current) {
+          mapContainer.current.style.touchAction = 'manipulation';
+        }
+        
+        // Add enhanced touch interactions for mobile
+        if (map.current.touchZoomRotate) {
+          map.current.touchZoomRotate.enable();
+        }
+        if (map.current.touchPitch) {
+          map.current.touchPitch.enable();
+        }
+      }
+
+      // Set up automatic globe rotation
+      const secondsPerRevolution = 180;
+      const maxSpinZoom = 5;
+      const slowSpinZoom = 3;
+      let userInteracting = false;
+      let spinEnabled = true;
+
+      function spinGlobe() {
+        if (!map.current) return;
+        
+        const zoom = map.current.getZoom();
+        if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
+          let distancePerSecond = 360 / secondsPerRevolution;
+          if (zoom > slowSpinZoom) {
+            const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
+            distancePerSecond *= zoomDif;
+          }
+          const center = map.current.getCenter();
+          center.lng -= distancePerSecond / 60;
+          map.current.easeTo({ center, duration: 1000, easing: (n) => n });
+        }
+      }
+
+      // Set up interaction event handlers
+      map.current.on('mousedown', () => {
+        userInteracting = true;
       });
       
-      // Set the atmosphere property for a globe-style view
-      if (map.current) {
-        const mapboxMap = map.current as any;
-        if (mapboxMap.setTerrain) {
-          mapboxMap.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-        }
-        if (mapboxMap.setAtmosphere) {
-          mapboxMap.setAtmosphere({
-            'color': 'rgb(186, 210, 235)',
-            'high-color': 'rgb(36, 92, 223)',
-            'horizon-blend': 0.02,
-            'space-color': 'rgb(11, 11, 25)',
-            'star-intensity': 0.4
-          });
-        }
-      }
-    });
-
-    // Optimize for mobile - improve touch handling
-    if ('ontouchstart' in window) {
-      // Set touch action to allow default touch behavior
-      if (mapContainer.current) {
-        mapContainer.current.style.touchAction = 'manipulation';
-      }
+      map.current.on('touchstart', () => {
+        userInteracting = true;
+      });
       
-      // Add enhanced touch interactions for mobile
-      if (map.current.touchZoomRotate) {
-        map.current.touchZoomRotate.enable();
-      }
-      if (map.current.touchPitch) {
-        map.current.touchPitch.enable();
-      }
-    }
-
-    // Set up automatic globe rotation
-    const secondsPerRevolution = 180;
-    const maxSpinZoom = 5;
-    const slowSpinZoom = 3;
-    let userInteracting = false;
-    let spinEnabled = true;
-
-    function spinGlobe() {
-      if (!map.current) return;
+      map.current.on('dragstart', () => {
+        userInteracting = true;
+      });
       
-      const zoom = map.current.getZoom();
-      if (spinEnabled && !userInteracting && zoom < maxSpinZoom) {
-        let distancePerSecond = 360 / secondsPerRevolution;
-        if (zoom > slowSpinZoom) {
-          const zoomDif = (maxSpinZoom - zoom) / (maxSpinZoom - slowSpinZoom);
-          distancePerSecond *= zoomDif;
-        }
-        const center = map.current.getCenter();
-        center.lng -= distancePerSecond / 60;
-        map.current.easeTo({ center, duration: 1000, easing: (n) => n });
-      }
+      map.current.on('mouseup', () => {
+        userInteracting = false;
+        setTimeout(spinGlobe, 1000);
+      });
+      
+      map.current.on('touchend', () => {
+        userInteracting = false;
+        setTimeout(spinGlobe, 1000);
+      });
+
+      // Start spinning after initial load
+      map.current.on('load', () => {
+        console.log('Map fully loaded');
+        spinGlobe();
+        setInterval(spinGlobe, 1000);
+      });
+    } catch (error) {
+      console.error('Error initializing map:', error);
     }
-
-    // Set up interaction event handlers
-    map.current.on('mousedown', () => {
-      userInteracting = true;
-    });
-    
-    map.current.on('touchstart', () => {
-      userInteracting = true;
-    });
-    
-    map.current.on('dragstart', () => {
-      userInteracting = true;
-    });
-    
-    map.current.on('mouseup', () => {
-      userInteracting = false;
-      setTimeout(spinGlobe, 1000);
-    });
-    
-    map.current.on('touchend', () => {
-      userInteracting = false;
-      setTimeout(spinGlobe, 1000);
-    });
-
-    // Start spinning after initial load
-    map.current.on('load', () => {
-      spinGlobe();
-      setInterval(spinGlobe, 1000);
-    });
 
     return () => {
+      console.log('Cleaning up map');
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
-      map.current?.remove();
-      map.current = null;
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, []);
 
@@ -151,10 +171,14 @@ const MapView: React.FC = () => {
   useEffect(() => {
     if (!map.current || loading) return;
 
+    console.log('Adding markers to map, souvenirs count:', souvenirs.length);
+
     // Wait for the map to be loaded
     if (!map.current.loaded()) {
+      console.log('Map not loaded yet, waiting for load event');
       map.current.once('load', () => addMarkers());
     } else {
+      console.log('Map already loaded, adding markers immediately');
       addMarkers();
     }
 
@@ -165,6 +189,7 @@ const MapView: React.FC = () => {
 
       // Process locations to create clusters or offset markers
       const locationsArray: [string, any[]][] = Array.from(locationMap.entries());
+      console.log('Processing', locationsArray.length, 'unique locations');
       
       // Add new markers
       locationsArray.forEach(([key, locationSouvenirs], index) => {
