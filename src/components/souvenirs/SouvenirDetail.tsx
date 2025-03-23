@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
-import { Map, Calendar, ArrowLeft, Tag, Share2, Edit, MapPin, Trash2 } from 'lucide-react';
+import { Map, Calendar, ArrowLeft, Tag, Share2, Edit, MapPin, Trash2, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog';
@@ -21,7 +21,7 @@ import { Location } from '../../types/souvenir';
 const SouvenirDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getSouvenirById, deleteSouvenir, updateSouvenir } = useSouvenirs();
+  const { getSouvenirById, deleteSouvenir, updateSouvenir, trips } = useSouvenirs();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -36,6 +36,9 @@ const SouvenirDetail: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const souvenir = getSouvenirById(id || '');
+  
+  // Find associated trip
+  const associatedTrip = souvenir?.tripId ? trips.find(trip => trip.id === souvenir.tripId) : null;
   
   // Using useEffect to reset image errors when souvenir changes - moved this before the early return
   useEffect(() => {
@@ -258,6 +261,19 @@ const SouvenirDetail: React.FC = () => {
           <Calendar className="h-4 w-4 mr-1" />
           <span>{formattedDate}</span>
         </div>
+        
+        {/* Display associated trip name if it exists */}
+        {associatedTrip && (
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Briefcase className="h-4 w-4 mr-1" />
+            <span 
+              className="hover:underline cursor-pointer"
+              onClick={() => navigate(`/trip/${associatedTrip.id}`)}
+            >
+              {associatedTrip.name}
+            </span>
+          </div>
+        )}
       </div>
       
       <div className="mb-6 flex flex-wrap gap-2">

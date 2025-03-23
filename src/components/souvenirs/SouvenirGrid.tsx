@@ -26,10 +26,20 @@ const SouvenirGrid: React.FC = () => {
     categories
   } = useFilteredSouvenirs(souvenirs);
 
+  // Get count of unique countries from all souvenirs (not just filtered ones)
+  const uniqueCountriesCount = new Set(souvenirs.map(s => s.location.country)).size;
+
   console.log('Rendering SouvenirGrid with souvenirs:', souvenirs.length);
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
+      <div className="mb-4">
+        <h1 className="text-2xl font-serif font-medium">Your Collection</h1>
+        <p className="text-muted-foreground">
+          Memories from {uniqueCountriesCount} {uniqueCountriesCount === 1 ? 'country' : 'countries'} around the world
+        </p>
+      </div>
+      
       <FilterBar 
         filters={filters}
         onFilterChange={handleFilterChange}
