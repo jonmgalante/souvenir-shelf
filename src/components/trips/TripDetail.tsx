@@ -58,30 +58,81 @@ const TripDetail: React.FC = () => {
 
   useEffect(() => {
     if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0 && editingExistingImage) {
-      const dataUrl = trip.coverImage;
-      
-      const byteString = atob(dataUrl.split(',')[1]);
-      const mimeType = dataUrl.split(',')[0].split(':')[1].split(';')[0];
-      const ab = new ArrayBuffer(byteString.length);
-      const ia = new Uint8Array(ab);
-      
-      for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-      }
-      
-      const blob = new Blob([ab], { type: mimeType });
-      const file = new File([blob], 'current-cover.jpg', { type: mimeType });
-      
-      const event = {
-        target: {
-          files: [file]
+      try {
+        const imageUrl = trip.coverImage;
+        
+        if (imageUrl.startsWith('data:')) {
+          const parts = imageUrl.split(',');
+          if (parts.length >= 2) {
+            const mimeMatch = parts[0].match(/:(.*?);/);
+            const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+            
+            try {
+              const byteString = atob(parts[1]);
+              const ab = new ArrayBuffer(byteString.length);
+              const ia = new Uint8Array(ab);
+              
+              for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+              }
+              
+              const blob = new Blob([ab], { type: mimeType });
+              const file = new File([blob], 'current-cover.jpg', { type: mimeType });
+              
+              const event = {
+                target: {
+                  files: [file]
+                }
+              } as unknown as React.ChangeEvent<HTMLInputElement>;
+              
+              handleImageChange(event);
+            } catch (e) {
+              console.error('Error decoding base64 data:', e);
+              loadImageAsUrl(imageUrl);
+            }
+          } else {
+            console.error('Invalid data URL format');
+            loadImageAsUrl(imageUrl);
+          }
+        } else {
+          loadImageAsUrl(imageUrl);
         }
-      } as unknown as React.ChangeEvent<HTMLInputElement>;
-      
-      handleImageChange(event);
-      setEditingExistingImage(false);
+        
+        setEditingExistingImage(false);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        setEditingExistingImage(false);
+      }
     }
   }, [trip, isPhotoDialogOpen, imageUrls.length, editingExistingImage, handleImageChange]);
+  
+  const loadImageAsUrl = (url: string) => {
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch image: ${response.status}`);
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        const file = new File([blob], 'current-cover.jpg', { type: blob.type || 'image/jpeg' });
+        const event = {
+          target: {
+            files: [file]
+          }
+        } as unknown as React.ChangeEvent<HTMLInputElement>;
+        
+        handleImageChange(event);
+      })
+      .catch(error => {
+        console.error('Error loading image as URL:', error);
+        toast({
+          title: "Failed to load image",
+          description: "Could not load the existing image for editing.",
+          variant: "destructive",
+        });
+      });
+  };
   
   const addExistingSouvenir = async (souvenir: Souvenir) => {
     try {
