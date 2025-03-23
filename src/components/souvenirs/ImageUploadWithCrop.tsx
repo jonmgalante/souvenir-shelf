@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Camera, Pencil, X } from 'lucide-react';
+import { Camera, Pencil, X, ImageIcon } from 'lucide-react';
 import ImageCropper from '../common/ImageCropper';
 
 interface ImageUploadWithCropProps {
@@ -44,15 +44,27 @@ const ImageUploadWithCrop: React.FC<ImageUploadWithCropProps> = ({
         <div className="grid grid-cols-3 gap-2">
           {imageUrls.map((url, index) => (
             <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group">
-              <img
-                src={url}
-                alt={`Image ${index + 1}`}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  console.error(`Failed to load image at index ${index}`);
-                  (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMjJDMTcuNTIyOCAyMiAyMiAxNy41MjI4IDIyIDEyQzIyIDYuNDc3MTUgMTcuNTIyOCAyIDEyIDJDNi40NzcxNSAyIDIgNi40NzcxNSAyIDEyQzIgMTcuNTIyOCA2LjQ3NzE1IDIyIDEyIDIyWiIgc3Ryb2tlPSIjQTFBMUFBIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIgMTJIMjIiIHN0cm9rZT0iI0ExQTFBQSIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xMiAyQzE0Ljk1IDIgMTcuNDggNi40NyAxNy40OCAxMkMxNy40OCAxNy41MyAxNC45NSAyMiAxMiAyMkM5LjA1IDIyIDYuNTIgMTcuNTMgNi41MiAxMkM2LjUyIDYuNDcgOS4wNSAyIDEyIDJaIiBzdHJva2U9IiNBMUExQUEiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=';
-                }}
-              />
+              <div className="w-full h-full relative">
+                <img
+                  src={url}
+                  alt={`Image ${index + 1}`}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    console.error(`Failed to load image at index ${index}`, url);
+                    const target = e.target as HTMLImageElement;
+                    // Replace with a placeholder icon
+                    target.style.display = 'none';
+                    const parent = target.parentNode as HTMLElement;
+                    if (parent) {
+                      parent.classList.add('flex', 'items-center', 'justify-center');
+                      const placeholder = document.createElement('div');
+                      placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+                      placeholder.className = 'flex items-center justify-center w-full h-full';
+                      parent.appendChild(placeholder);
+                    }
+                  }}
+                />
+              </div>
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <button
                   type="button"
@@ -80,7 +92,7 @@ const ImageUploadWithCrop: React.FC<ImageUploadWithCropProps> = ({
       )}
 
       {/* Image Cropper Dialog */}
-      {imageToEdit && (
+      {showCropper && imageToEdit && (
         <ImageCropper
           imageUrl={imageToEdit}
           onCropComplete={onCropComplete}

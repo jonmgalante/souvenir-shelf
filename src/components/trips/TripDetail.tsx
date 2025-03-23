@@ -26,6 +26,7 @@ const TripDetail: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingToTrip, setIsAddingToTrip] = useState(false);
   const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   const { 
     imageUrls, 
@@ -57,18 +58,46 @@ const TripDetail: React.FC = () => {
 
   useEffect(() => {
     if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0) {
-      loadTripCoverImage();
+      setImageError(false);
+      
+      if (trip.coverImage.startsWith('data:')) {
+        const dataUrl = trip.coverImage;
+        createFileFromDataUrl(dataUrl);
+      } else {
+        loadExternalImage(trip.coverImage);
+      }
     }
   }, [trip, isPhotoDialogOpen, imageUrls.length]);
   
-  const loadTripCoverImage = () => {
-    if (!trip?.coverImage) return;
-    
+  const createFileFromDataUrl = (dataUrl: string) => {
     try {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
+      const blob = dataURLtoBlob(dataUrl);
+      const file = new File([blob], 'trip-cover.jpg', { type: 'image/jpeg' });
       
-      img.onload = () => {
+      const event = {
+        target: {
+          files: [file]
+        }
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      
+      handleImageChange(event);
+    } catch (error) {
+      console.error('Error creating file from data URL:', error);
+      setImageError(true);
+      toast({
+        title: "Error loading image",
+        description: "Could not process the image data.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const loadExternalImage = (imageUrl: string) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => {
+      try {
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
@@ -76,62 +105,31 @@ const TripDetail: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, 0);
-          
           const dataUrl = canvas.toDataURL('image/jpeg');
-          const file = new File(
-            [dataURLtoBlob(dataUrl)], 
-            'trip-cover.jpg', 
-            { type: 'image/jpeg' }
-          );
-          
-          const event = {
-            target: {
-              files: [file]
-            }
-          } as unknown as React.ChangeEvent<HTMLInputElement>;
-          
-          handleImageChange(event);
+          createFileFromDataUrl(dataUrl);
         }
-      };
-      
-      img.onerror = () => {
-        console.error('Failed to load image from URL');
+      } catch (error) {
+        console.error('Error processing loaded image:', error);
+        setImageError(true);
         toast({
-          title: "Error loading image",
-          description: "Could not load the trip cover image.",
+          title: "Error processing image",
+          description: "Could not process the loaded image.",
           variant: "destructive",
         });
-      };
-      
-      if (trip.coverImage.startsWith('data:')) {
-        img.src = trip.coverImage;
-      } else {
-        fetch(trip.coverImage)
-          .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.blob();
-          })
-          .then(blob => {
-            const url = URL.createObjectURL(blob);
-            img.src = url;
-          })
-          .catch(error => {
-            console.error('Error loading image URL:', error);
-            toast({
-              title: "Error loading image",
-              description: "Could not load the image from URL.",
-              variant: "destructive",
-            });
-          });
       }
-    } catch (error) {
-      console.error('Error in loadTripCoverImage:', error);
+    };
+    
+    img.onerror = () => {
+      console.error('Failed to load image from URL:', imageUrl);
+      setImageError(true);
       toast({
         title: "Error loading image",
-        description: "An unexpected error occurred while loading the image.",
+        description: "Could not load the image from the provided URL.",
         variant: "destructive",
       });
-    }
+    };
+    
+    img.src = imageUrl;
   };
   
   const dataURLtoBlob = (dataURL: string): Blob => {
@@ -152,7 +150,7 @@ const TripDetail: React.FC = () => {
       return new Blob([uInt8Array], { type: contentType });
     } catch (error) {
       console.error('Error converting data URL to blob:', error);
-      return new Blob([''], { type: 'image/jpeg' });
+      throw error;
     }
   };
   
@@ -269,13 +267,19 @@ const TripDetail: React.FC = () => {
   const endDate = new Date(trip.dateRange.end);
   const formattedDateRange = `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
   
-  const hasCoverImage = trip.coverImage && 
+  const isValidCoverImage = 
+    trip.coverImage && 
     typeof trip.coverImage === 'string' && 
-    trip.coverImage.trim() !== '';
+    trip.coverImage.trim() !== '' &&
+    !imageError;
   
-  const coverImageStyle = hasCoverImage ? 
-    { backgroundImage: `url(${trip.coverImage})` } : 
-    { backgroundColor: '#f0f0f0' };
+  const coverImageStyle = isValidCoverImage
+    ? { backgroundImage: `url(${trip.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { backgroundColor: '#f0f0f0' };
+  
+  const handleImageLoadError = () => {
+    setImageError(true);
+  };
   
   return (
     <div className="souvenir-container animate-fade-in pb-24">
