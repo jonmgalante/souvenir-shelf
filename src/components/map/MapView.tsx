@@ -15,6 +15,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+// Create a type for LatLng
+interface LatLng {
+  lat: number;
+  lng: number;
+}
+
 const MapView: React.FC = () => {
   const { souvenirs, loading } = useSouvenirs();
   const navigate = useNavigate();
@@ -30,7 +36,7 @@ const MapView: React.FC = () => {
   });
 
   // Calculate map bounds or default center
-  const getMapCenter = () => {
+  const getMapCenter = (): LatLng => {
     if (souvenirs.length === 0) {
       return { lat: 20, lng: 0 }; // Default center if no souvenirs
     }
@@ -72,7 +78,7 @@ const MapView: React.FC = () => {
           <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
               style={{ height: '100%', width: '100%' }}
-              center={[center.lat, center.lng]}
+              center={[center.lat, center.lng] as L.LatLngExpression}
               zoom={2}
               scrollWheelZoom={true}
             >
@@ -85,7 +91,10 @@ const MapView: React.FC = () => {
               {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
                 const [lat, lng] = key.split(',').map(Number);
                 return (
-                  <Marker key={key} position={[lat, lng]}>
+                  <Marker 
+                    key={key} 
+                    position={[lat, lng] as L.LatLngExpression}
+                  >
                     <Popup>
                       <div className="max-w-xs">
                         <h3 className="font-medium">{locationSouvenirs[0].location.city}, {locationSouvenirs[0].location.country}</h3>
