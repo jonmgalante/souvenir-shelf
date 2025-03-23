@@ -73,6 +73,18 @@ const MapView: React.FC = () => {
       }
     });
 
+    // Optimize for mobile - improve touch handling
+    if ('ontouchstart' in window) {
+      // Set touch action to allow default touch behavior
+      if (mapContainer.current) {
+        mapContainer.current.style.touchAction = 'manipulation';
+      }
+      
+      // Add enhanced touch interactions for mobile
+      map.current.touchZoomRotate.enable();
+      map.current.touchPitch.enable();
+    }
+
     // Set up automatic globe rotation
     const secondsPerRevolution = 180;
     const maxSpinZoom = 5;
@@ -98,6 +110,10 @@ const MapView: React.FC = () => {
 
     // Set up interaction event handlers
     map.current.on('mousedown', () => {
+      userInteracting = true;
+    });
+    
+    map.current.on('touchstart', () => {
       userInteracting = true;
     });
     
@@ -145,70 +161,125 @@ const MapView: React.FC = () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
 
+      // Process locations to create clusters or offset markers
+      const locationsArray: [string, any[]][] = Array.from(locationMap.entries());
+      
       // Add new markers
-      locationMap.forEach((locationSouvenirs, key) => {
+      locationsArray.forEach(([key, locationSouvenirs], index) => {
         const [lat, lng] = key.split(',').map(Number);
-        const firstSouvenir = locationSouvenirs[0];
         
-        // Create a custom marker element
-        const el = document.createElement('div');
-        el.className = 'custom-marker';
-        el.style.width = '30px';
-        el.style.height = '30px';
-        el.style.borderRadius = '50%';
-        el.style.backgroundColor = '#ffffff';
-        el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-        el.style.cursor = 'pointer';
-        el.style.border = '2px solid #ffffff';
-        el.style.overflow = 'hidden';
-        
-        // Add thumbnail image if available
-        if (firstSouvenir.images && firstSouvenir.images.length > 0) {
-          el.style.backgroundImage = `url(${firstSouvenir.images[0]})`;
-          el.style.backgroundSize = 'cover';
-          el.style.backgroundPosition = 'center';
+        // Handle clustering or offsetting for multiple souvenirs at the same location
+        if (locationSouvenirs.length === 1) {
+          // Single souvenir - create a standard marker
+          addSingleMarker(lat, lng, locationSouvenirs[0], locationSouvenirs);
+        } else if (locationSouvenirs.length <= 5) {
+          // Small cluster - offset markers slightly
+          locationSouvenirs.forEach((souvenir, i) => {
+            // Create small offset for each marker
+            const offsetLng = lng + (i * 0.0005);
+            const offsetLat = lat + (i * 0.0005);
+            addSingleMarker(offsetLat, offsetLng, souvenir, [souvenir]);
+          });
         } else {
-          // Default style for markers without images
-          el.style.backgroundColor = '#3b82f6';
-          el.innerHTML = `<span style="color: white; font-size: 12px; font-weight: bold; display: flex; justify-content: center; align-items: center; height: 100%;">${locationSouvenirs.length}</span>`;
+          // Large cluster - create a cluster marker
+          addClusterMarker(lat, lng, locationSouvenirs);
         }
+      });
+    }
+    
+    function addSingleMarker(lat: number, lng: number, firstSouvenir: any, souvenirs: any[]) {
+      // Create a custom marker element
+      const el = document.createElement('div');
+      el.className = 'custom-marker';
+      el.style.width = '30px';
+      el.style.height = '30px';
+      el.style.borderRadius = '50%';
+      el.style.backgroundColor = '#ffffff';
+      el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+      el.style.cursor = 'pointer';
+      el.style.border = '2px solid #ffffff';
+      el.style.overflow = 'hidden';
+      
+      // Add thumbnail image if available
+      if (firstSouvenir.images && firstSouvenir.images.length > 0) {
+        el.style.backgroundImage = `url(${firstSouvenir.images[0]})`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+      } else {
+        // Default style for markers without images
+        el.style.backgroundColor = '#3b82f6';
+        el.innerHTML = `<span style="color: white; font-size: 12px; font-weight: bold; display: flex; justify-content: center; align-items: center; height: 100%;">${souvenirs.length}</span>`;
+      }
+      
+      createMarkerWithPopup(el, lng, lat, souvenirs);
+    }
+    
+    function addClusterMarker(lat: number, lng: number, souvenirs: any[]) {
+      // Create a cluster marker for many souvenirs at same location
+      const el = document.createElement('div');
+      el.className = 'cluster-marker';
+      el.style.width = '40px';
+      el.style.height = '40px';
+      el.style.borderRadius = '50%';
+      el.style.backgroundColor = '#3b82f6';
+      el.style.color = 'white';
+      el.style.fontWeight = 'bold';
+      el.style.display = 'flex';
+      el.style.justifyContent = 'center';
+      el.style.alignItems = 'center';
+      el.style.boxShadow = '0 3px 6px rgba(0,0,0,0.3)';
+      el.style.border = '2px solid #ffffff';
+      el.style.cursor = 'pointer';
+      el.innerHTML = `${souvenirs.length}`;
+      
+      createMarkerWithPopup(el, lng, lat, souvenirs);
+    }
+    
+    function createMarkerWithPopup(el: HTMLElement, lng: number, lat: number, souvenirs: any[]) {
+      const firstSouvenir = souvenirs[0];
+      
+      // Create the popup content
+      const popupContent = document.createElement('div');
+      popupContent.className = 'popup-content';
+      popupContent.style.width = '200px';
+      
+      popupContent.innerHTML = `
+        <h3 style="font-weight: 600; margin-bottom: 4px;">${firstSouvenir.location.city}, ${firstSouvenir.location.country}</h3>
+        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${souvenirs.length} souvenir(s)</p>
+        <ul style="max-height: 150px; overflow-y: auto; margin: 0; padding-left: 0; list-style: none;">
+          ${souvenirs.map(s => `
+            <li style="padding: 4px 0; border-bottom: 1px solid #eee;">
+              <a href="#" class="souvenir-link" data-id="${s.id}" style="text-decoration: none; color: #3b82f6; font-size: 14px; display: block;">
+                ${s.name}
+              </a>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+      
+      // Create the marker and popup - optimize popup for touch
+      const popup = new mapboxgl.Popup({ 
+        offset: 25,
+        closeButton: true, 
+        closeOnClick: false,
+        maxWidth: '300px'
+      }).setDOMContent(popupContent);
+      
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([lng, lat])
+        .setPopup(popup)
+        .addTo(map.current!);
         
-        // Create the popup content
-        const popupContent = document.createElement('div');
-        popupContent.className = 'popup-content';
-        popupContent.style.width = '200px';
-        
-        popupContent.innerHTML = `
-          <h3 style="font-weight: 600; margin-bottom: 4px;">${firstSouvenir.location.city}, ${firstSouvenir.location.country}</h3>
-          <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${locationSouvenirs.length} souvenir(s)</p>
-          <ul style="max-height: 150px; overflow-y: auto; margin: 0; padding-left: 0; list-style: none;">
-            ${locationSouvenirs.map(s => `
-              <li style="padding: 4px 0; border-bottom: 1px solid #eee;">
-                <a href="#" class="souvenir-link" data-id="${s.id}" style="text-decoration: none; color: #3b82f6; font-size: 14px; display: block;">
-                  ${s.name}
-                </a>
-              </li>
-            `).join('')}
-          </ul>
-        `;
-        
-        // Create the marker and popup
-        const marker = new mapboxgl.Marker(el)
-          .setLngLat([lng, lat])
-          .setPopup(new mapboxgl.Popup({ offset: 25 }).setDOMContent(popupContent))
-          .addTo(map.current!);
-          
-        // Store marker for cleanup
-        markersRef.current.push(marker);
-        
-        // Add click event listeners to souvenir links
-        marker.getPopup().on('open', () => {
-          document.querySelectorAll('.souvenir-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-              e.preventDefault();
-              const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
-              if (id) navigate(`/souvenir/${id}`);
-            });
+      // Store marker for cleanup
+      markersRef.current.push(marker);
+      
+      // Add click event listeners to souvenir links
+      marker.getPopup().on('open', () => {
+        document.querySelectorAll('.souvenir-link').forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const id = (e.currentTarget as HTMLElement).getAttribute('data-id');
+            if (id) navigate(`/souvenir/${id}`);
           });
         });
       });

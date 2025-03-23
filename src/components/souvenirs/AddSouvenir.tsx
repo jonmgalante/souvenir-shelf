@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
 import { Location } from '../../types/souvenir';
-import { Map, Calendar, ChevronDown, Save } from 'lucide-react';
+import { Map, Calendar, ChevronDown, Save, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 // Custom Hook
@@ -56,6 +55,39 @@ const AddSouvenir: React.FC = () => {
     setShowLocationModal(false);
   };
 
+  const searchLocation = async (city: string, country: string) => {
+    if (!city || !country) return;
+    
+    try {
+      const query = `${city}, ${country}`;
+      const mapboxToken = 'pk.eyJ1Ijoiam9ubWdhbGFudGUiLCJhIjoiY204a3ltMHh1MHhwczJxcG8yZXRqaDgxZiJ9.mN_EYyrVSLoOB5Pojc_FWQ';
+      
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}`
+      );
+      
+      if (!response.ok) throw new Error('Geocoding request failed');
+      
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        const [longitude, latitude] = data.features[0].center;
+        
+        return {
+          city,
+          country,
+          latitude,
+          longitude
+        };
+      }
+      
+      throw new Error('Location not found');
+    } catch (error) {
+      console.error('Error searching location:', error);
+      return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -89,9 +121,23 @@ const AddSouvenir: React.FC = () => {
     try {
       setSubmitting(true);
       
+      let locationWithCoords = location;
+      
+      if (location.latitude === 0 && location.longitude === 0) {
+        const coords = await searchLocation(location.city, location.country);
+        if (coords) {
+          locationWithCoords = coords;
+        } else {
+          toast({
+            title: "Warning",
+            description: "Could not find exact coordinates for the location. Approximate coordinates will be used.",
+          });
+        }
+      }
+      
       await addSouvenir({
         name,
-        location,
+        location: locationWithCoords,
         dateAcquired: date.toISOString(),
         categories: selectedCategories.length > 0 ? selectedCategories : ['Other'],
         notes,
@@ -156,21 +202,62 @@ const AddSouvenir: React.FC = () => {
                 />
               </div>
               
-              <div className="pt-4 flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowLocationModal(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => handleLocationSelect(location)}
-                  disabled={!location.country || !location.city}
-                >
-                  Set Location
-                </Button>
+              <div className="flex justify-between items-center pt-2">
+                <div className="text-xs text-gray-500">
+                  <MapPin className="h-3 w-3 inline mr-1" />
+                  Coordinates will be automatically added
+                </div>
+                
+                <div className="pt-2 flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowLocationModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={async () => {
+                      if (!location.country || !location.city) {
+                        toast({
+                          title: "Error",
+                          description: "Please enter both city and country",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      
+                      try {
+                        const coords = await searchLocation(location.city, location.country);
+                        if (coords) {
+                          handleLocationSelect(coords);
+                        } else {
+                          handleLocationSelect({
+                            ...location,
+                            latitude: 0,
+                            longitude: 0
+                          });
+                          
+                          toast({
+                            title: "Warning",
+                            description: "Could not find exact coordinates for this location",
+                          });
+                        }
+                      } catch (error) {
+                        console.error("Error getting coordinates:", error);
+                        handleLocationSelect({
+                          ...location,
+                          latitude: 0,
+                          longitude: 0
+                        });
+                      }
+                    }}
+                    disabled={!location.country || !location.city}
+                  >
+                    Set Location
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -193,7 +280,6 @@ const AddSouvenir: React.FC = () => {
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Name Input */}
         <div className="space-y-2">
           <label htmlFor="name" className="block text-sm font-medium">
             Souvenir Name
@@ -208,14 +294,12 @@ const AddSouvenir: React.FC = () => {
           />
         </div>
         
-        {/* Image Upload Section */}
         <ImageUpload 
           imageUrls={imageUrls} 
           handleImageChange={handleImageChange} 
           removeImage={removeImage} 
         />
         
-        {/* Location Input */}
         <LocationInput 
           location={location}
           setLocation={setLocation}
@@ -223,20 +307,17 @@ const AddSouvenir: React.FC = () => {
           setShowLocationModal={setShowLocationModal}
         />
         
-        {/* Date Selection */}
         <DateSelection 
           date={date}
           setShowDatePicker={setShowDatePicker}
           showDatePicker={showDatePicker}
         />
         
-        {/* Categories */}
         <CategorySelection 
           selectedCategories={selectedCategories}
           toggleCategory={toggleCategory}
         />
         
-        {/* Notes */}
         <div className="space-y-2">
           <label htmlFor="notes" className="block text-sm font-medium">
             Notes
@@ -251,7 +332,6 @@ const AddSouvenir: React.FC = () => {
           />
         </div>
         
-        {/* Submit Button - Made more prominent */}
         <div className="sticky bottom-20 pt-4 pb-2 bg-background">
           <Button
             type="submit"
@@ -264,7 +344,6 @@ const AddSouvenir: React.FC = () => {
         </div>
       </form>
       
-      {/* Date picker popover */}
       {showDatePicker && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg overflow-hidden">
@@ -295,7 +374,6 @@ const AddSouvenir: React.FC = () => {
         </div>
       )}
       
-      {/* Location Modal */}
       {renderLocationModal()}
     </div>
   );
