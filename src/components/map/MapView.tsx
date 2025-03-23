@@ -29,6 +29,11 @@ const MapView: React.FC = () => {
     return map;
   }, [souvenirs]);
 
+  // Get count of unique countries from all souvenirs
+  const uniqueCountriesCount = useMemo(() => {
+    return new Set(souvenirs.map(s => s.location.country)).size;
+  }, [souvenirs]);
+
   // Initialize map when component mounts
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -322,14 +327,19 @@ const MapView: React.FC = () => {
 
   return (
     <div className="p-4 h-[calc(100vh-80px)] flex flex-col">
-      <h1 className="text-xl font-medium mb-4">Souvenir Map</h1>
+      <div>
+        <h1 className="text-xl font-medium">Souvenir Map</h1>
+        <p className="text-muted-foreground text-sm">
+          Memories from {uniqueCountriesCount} {uniqueCountriesCount === 1 ? 'country' : 'countries'} around the world
+        </p>
+      </div>
       
       {souvenirs.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center bg-gray-50 rounded-lg">
+        <div className="flex-1 flex items-center justify-center bg-gray-50 rounded-lg mt-4">
           <p className="text-gray-500">No souvenirs to display on the map</p>
         </div>
       ) : (
-        <Card className="flex-1 overflow-hidden relative">
+        <Card className="flex-1 overflow-hidden relative mt-4">
           <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
           <div className="absolute bottom-4 left-4 z-10 bg-white p-2 rounded-md shadow-md text-xs">
             <p className="text-gray-600">⟲ Drag to stop auto-rotation</p>
