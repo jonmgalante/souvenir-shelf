@@ -19,6 +19,7 @@ import SouvenirDetail from "./components/souvenirs/SouvenirDetail";
 import AddSouvenir from "./components/souvenirs/AddSouvenir";
 import MapView from "./components/map/MapView";
 import TripFolders from "./components/trips/TripFolders";
+import TripDetail from "./components/trips/TripDetail";
 import ProfileScreen from "./components/profile/ProfileScreen";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => {
                 <Route path="/add" element={<Layout><AddSouvenir /></Layout>} />
                 <Route path="/map" element={<Layout><MapView /></Layout>} />
                 <Route path="/trips" element={<Layout><TripFolders /></Layout>} />
+                <Route path="/trip/:id" element={<Layout><TripDetail /></Layout>} />
                 <Route path="/profile" element={<Layout><ProfileScreen /></Layout>} />
                 
                 {/* Catch all */}
