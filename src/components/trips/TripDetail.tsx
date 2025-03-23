@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip, Souvenir } from '../../context/souvenir';
@@ -303,22 +304,22 @@ const TripDetail: React.FC = () => {
         )}
         
         {!isValidCoverImage && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div className="absolute inset-0 flex items-center justify-center bg-souvenir-100">
             <div className="text-center">
-              <Camera className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-muted-foreground">Click to add a cover photo</p>
+              <Camera className="h-12 w-12 mx-auto mb-2 text-souvenir-300" />
+              <p className="text-souvenir-400">Click to add a cover photo</p>
             </div>
           </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
+        <div className="absolute inset-0 bg-gradient-to-t from-souvenir-500/80 via-souvenir-500/20 to-transparent flex flex-col justify-end p-6 text-white">
           <div className="flex items-center space-x-2 text-sm">
             <Calendar className="h-4 w-4" />
             <span>{formattedDateRange}</span>
           </div>
         </div>
         
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className="absolute inset-0 bg-souvenir-500/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <div className="bg-white/80 text-black p-2 rounded-full">
             <Pencil className="h-6 w-6" />
           </div>

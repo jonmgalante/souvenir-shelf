@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip } from '../../context/souvenir';
@@ -221,8 +222,8 @@ const TripCard: React.FC<TripCardProps> = ({ trip, souvenirCount, onClick }) => 
         }
       >
         {(imageError || !isValidImage) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
-            <ImageIcon className="h-10 w-10 text-gray-400" />
+          <div className="absolute inset-0 flex items-center justify-center bg-souvenir-100">
+            <ImageIcon className="h-10 w-10 text-souvenir-300" />
           </div>
         )}
         
@@ -235,7 +236,7 @@ const TripCard: React.FC<TripCardProps> = ({ trip, souvenirCount, onClick }) => 
           />
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col justify-end p-4 text-white">
+        <div className="absolute inset-0 bg-gradient-to-t from-souvenir-500/80 via-souvenir-500/30 to-transparent flex flex-col justify-end p-4 text-white">
           <h3 className="text-xl font-serif font-medium line-clamp-1">{trip.name}</h3>
           <div className="flex items-center text-sm opacity-90 mt-1">
             <Calendar className="h-3 w-3 mr-1" />
