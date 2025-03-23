@@ -12,7 +12,7 @@ interface MapCenterProps {
 }
 
 // Separate component file for map center update functionality
-function MapCenter({ center }: MapCenterProps) {
+const MapCenter: React.FC<MapCenterProps> = ({ center }) => {
   const map = useMap();
   
   useEffect(() => {
@@ -20,6 +20,6 @@ function MapCenter({ center }: MapCenterProps) {
   }, [center, map]);
   
   return null;
-}
+};
 
 export default MapCenter;

@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -67,6 +67,37 @@ const MapView: React.FC = () => {
   const center = getMapCenter();
   const defaultCenter: [number, number] = [center.lat, center.lng];
 
+  // Create marker elements outside of MapContainer
+  const markerElements = Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
+    const [lat, lng] = key.split(',').map(Number);
+    const position: [number, number] = [lat, lng];
+    return (
+      <Marker 
+        key={key} 
+        position={position}
+      >
+        <Popup>
+          <div className="max-w-xs">
+            <h3 className="font-medium">{locationSouvenirs[0].location.city}, {locationSouvenirs[0].location.country}</h3>
+            <p className="text-sm text-gray-600 mb-2">{locationSouvenirs.length} souvenir(s)</p>
+            <ul className="space-y-1">
+              {locationSouvenirs.map(s => (
+                <li key={s.id}>
+                  <button
+                    onClick={() => navigate(`/souvenir/${s.id}`)}
+                    className="text-sm text-blue-600 hover:underline text-left"
+                  >
+                    {s.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Popup>
+      </Marker>
+    );
+  });
+
   return (
     <div className="p-4 h-[calc(100vh-80px)] flex flex-col">
       <h1 className="text-xl font-medium mb-4">Souvenir Map</h1>
@@ -88,38 +119,8 @@ const MapView: React.FC = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
-              
               <MapCenter center={center} />
-              
-              {Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
-                const [lat, lng] = key.split(',').map(Number);
-                const position: [number, number] = [lat, lng];
-                return (
-                  <Marker 
-                    key={key} 
-                    position={position}
-                  >
-                    <Popup>
-                      <div className="max-w-xs">
-                        <h3 className="font-medium">{locationSouvenirs[0].location.city}, {locationSouvenirs[0].location.country}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{locationSouvenirs.length} souvenir(s)</p>
-                        <ul className="space-y-1">
-                          {locationSouvenirs.map(s => (
-                            <li key={s.id}>
-                              <button
-                                onClick={() => navigate(`/souvenir/${s.id}`)}
-                                className="text-sm text-blue-600 hover:underline text-left"
-                              >
-                                {s.name}
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })}
+              {markerElements}
             </MapContainer>
           </div>
         </Card>
