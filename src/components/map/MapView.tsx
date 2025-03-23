@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useMemo } from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { Card } from '../ui/card';
@@ -38,9 +37,9 @@ const MapView: React.FC = () => {
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
       projection: 'globe',
-      zoom: 1,           // Reduced zoom level by 1 to show more of the globe
-      center: [0, -30],  // Further adjust the latitude to move the globe higher
-      pitch: 15,         // Further reduce pitch to make the globe appear higher
+      zoom: 1.5,         // Adjusted zoom level to show the whole globe
+      center: [0, 0],    // Center the globe in the viewport
+      pitch: 0,          // Reduced pitch to zero for a centered view
       attributionControl: false
     });
 
