@@ -2,7 +2,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Provider } from '@supabase/supabase-js';
-import { toast } from '@/components/ui/use-toast';
 
 type AuthUser = {
   id: string;
@@ -139,17 +138,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in.",
-      });
+      // Toast notification removed
     } catch (error: any) {
       console.error('Sign in error:', error);
-      toast({
-        title: "Sign in failed",
-        description: error.message || "Please check your credentials and try again.",
-        variant: "destructive",
-      });
       throw error;
     } finally {
       setLoading(false);
@@ -173,17 +164,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      toast({
-        title: "Welcome to Souvenir Shelf!",
-        description: "Your account has been created. Please check your email for verification.",
-      });
+      // Toast notification removed
     } catch (error: any) {
       console.error('Sign up error:', error);
-      toast({
-        title: "Sign up failed",
-        description: error.message || "An error occurred during sign up.",
-        variant: "destructive",
-      });
       throw error;
     } finally {
       setLoading(false);
@@ -193,17 +176,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
+      // Toast notification removed
     } catch (error: any) {
       console.error('Sign out error:', error);
-      toast({
-        title: "Sign out failed",
-        description: error.message || "An error occurred while signing out.",
-        variant: "destructive",
-      });
+      throw error;
     }
   };
 
@@ -221,11 +197,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('Google sign in error:', error);
-      toast({
-        title: "Google sign in failed",
-        description: error.message || "An error occurred during Google sign in.",
-        variant: "destructive",
-      });
       throw error;
     }
   };
@@ -245,11 +216,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error: any) {
       console.error('Social sign in error:', error);
-      toast({
-        title: "Social sign in failed",
-        description: error.message || "An error occurred during sign in.",
-        variant: "destructive",
-      });
       throw error;
     }
   };
