@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSouvenirs } from '../../context/souvenir';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -14,24 +14,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
-
-// Create proper type declarations for react-leaflet components to fix TypeScript errors
-declare module 'react-leaflet' {
-  export interface MapContainerProps {
-    center: [number, number];
-    zoom: number;
-    scrollWheelZoom?: boolean;
-    style?: React.CSSProperties;
-    className?: string;
-    children?: React.ReactNode;
-  }
-
-  export interface TileLayerProps {
-    attribution: string;
-    url: string;
-    children?: React.ReactNode;
-  }
-}
 
 const MapView: React.FC = () => {
   const { souvenirs, loading } = useSouvenirs();
@@ -50,7 +32,7 @@ const MapView: React.FC = () => {
   // Calculate map bounds or default center
   const getMapCenter = () => {
     if (souvenirs.length === 0) {
-      return [20, 0] as [number, number]; // Default center if no souvenirs
+      return [20, 0]; // Default center if no souvenirs
     }
     
     // Calculate average of all coordinates
@@ -63,7 +45,7 @@ const MapView: React.FC = () => {
       { lat: 0, lng: 0 }
     );
     
-    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length] as [number, number];
+    return [sum.lat / souvenirs.length, sum.lng / souvenirs.length];
   };
 
   if (loading) {
@@ -90,7 +72,7 @@ const MapView: React.FC = () => {
           <div style={{ height: '100%', width: '100%' }}>
             <MapContainer
               style={{ height: '100%', width: '100%' }}
-              center={center}
+              center={center as [number, number]}
               zoom={2}
               scrollWheelZoom={true}
             >
