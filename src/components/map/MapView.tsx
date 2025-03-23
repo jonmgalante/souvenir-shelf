@@ -39,7 +39,7 @@ const MapView: React.FC = () => {
     return map;
   }, [souvenirs]);
 
-  // Calculate map bounds or default center
+  // Calculate map center
   const getMapCenter = (): LatLng => {
     if (souvenirs.length === 0) {
       return { lat: 20, lng: 0 }; // Default center if no souvenirs
@@ -58,6 +58,40 @@ const MapView: React.FC = () => {
     return { lat: sum.lat / souvenirs.length, lng: sum.lng / souvenirs.length };
   };
 
+  // Create marker elements before rendering
+  const markerElements = useMemo(() => {
+    return Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
+      const [lat, lng] = key.split(',').map(Number);
+      const position: [number, number] = [lat, lng];
+      
+      return (
+        <Marker 
+          key={key} 
+          position={position}
+        >
+          <Popup>
+            <div className="max-w-xs">
+              <h3 className="font-medium">{locationSouvenirs[0].location.city}, {locationSouvenirs[0].location.country}</h3>
+              <p className="text-sm text-gray-600 mb-2">{locationSouvenirs.length} souvenir(s)</p>
+              <ul className="space-y-1">
+                {locationSouvenirs.map(s => (
+                  <li key={s.id}>
+                    <button
+                      onClick={() => navigate(`/souvenir/${s.id}`)}
+                      className="text-sm text-blue-600 hover:underline text-left"
+                    >
+                      {s.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Popup>
+        </Marker>
+      );
+    });
+  }, [locationMap, navigate]);
+
   if (loading) {
     return (
       <div className="p-4 flex justify-center items-center h-[calc(100vh-80px)]">
@@ -69,38 +103,6 @@ const MapView: React.FC = () => {
   // Get center coordinates for the map
   const center = getMapCenter();
   const defaultCenter: [number, number] = [center.lat, center.lng];
-
-  // Create marker elements before rendering
-  const markerElements = Array.from(locationMap.entries()).map(([key, locationSouvenirs]) => {
-    const [lat, lng] = key.split(',').map(Number);
-    const position: [number, number] = [lat, lng];
-    
-    return (
-      <Marker 
-        key={key} 
-        position={position}
-      >
-        <Popup>
-          <div className="max-w-xs">
-            <h3 className="font-medium">{locationSouvenirs[0].location.city}, {locationSouvenirs[0].location.country}</h3>
-            <p className="text-sm text-gray-600 mb-2">{locationSouvenirs.length} souvenir(s)</p>
-            <ul className="space-y-1">
-              {locationSouvenirs.map(s => (
-                <li key={s.id}>
-                  <button
-                    onClick={() => navigate(`/souvenir/${s.id}`)}
-                    className="text-sm text-blue-600 hover:underline text-left"
-                  >
-                    {s.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Popup>
-      </Marker>
-    );
-  });
 
   return (
     <div className="p-4 h-[calc(100vh-80px)] flex flex-col">
