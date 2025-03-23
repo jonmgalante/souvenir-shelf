@@ -38,6 +38,7 @@ export type Database = {
       }
       souvenirs: {
         Row: {
+          address: string | null
           categories: string[]
           city: string
           country: string
@@ -54,6 +55,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address?: string | null
           categories?: string[]
           city: string
           country: string
@@ -70,6 +72,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address?: string | null
           categories?: string[]
           city?: string
           country?: string
