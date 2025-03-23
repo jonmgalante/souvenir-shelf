@@ -46,8 +46,12 @@ const ImageUploadWithCrop: React.FC<ImageUploadWithCropProps> = ({
             <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group">
               <img
                 src={url}
-                alt={`Souvenir ${index + 1}`}
+                alt={`Image ${index + 1}`}
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  console.error(`Failed to load image at index ${index}`);
+                  (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTIgMjJDMTcuNTIyOCAyMiAyMiAxNy41MjI4IDIyIDEyQzIyIDYuNDc3MTUgMTcuNTIyOCAyIDEyIDJDNi40NzcxNSAyIDIgNi40NzcxNSAyIDEyQzIgMTcuNTIyOCA2LjQ3NzE1IDIyIDEyIDIyWiIgc3Ryb2tlPSIjQTFBMUFBIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTIgMTJIMjIiIHN0cm9rZT0iI0ExQTFBQSIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xMiAyQzE0Ljk1IDIgMTcuNDggNi40NyAxNy40OCAxMkMxNy40OCAxNy41MyAxNC45NSAyMiAxMiAyMkM5LjA1IDIyIDYuNTIgMTcuNTMgNi41MiAxMkM2LjUyIDYuNDcgOS4wNSAyIDEyIDJaIiBzdHJva2U9IiNBMUExQUEiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=';
+                }}
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                 <button

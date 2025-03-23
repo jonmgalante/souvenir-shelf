@@ -26,7 +26,6 @@ const TripDetail: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingToTrip, setIsAddingToTrip] = useState(false);
   const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
-  const [editingExistingImage, setEditingExistingImage] = useState(false);
   
   const { 
     imageUrls, 
@@ -57,199 +56,104 @@ const TripDetail: React.FC = () => {
   }, [id, trips, souvenirs, loading]);
 
   useEffect(() => {
-    if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0 && editingExistingImage) {
-      loadTripCoverImage(trip.coverImage);
+    if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0) {
+      loadTripCoverImage();
     }
-  }, [trip, isPhotoDialogOpen, imageUrls.length, editingExistingImage, handleImageChange]);
-
-  const loadTripCoverImage = (imageUrl: string) => {
+  }, [trip, isPhotoDialogOpen, imageUrls.length]);
+  
+  const loadTripCoverImage = () => {
+    if (!trip?.coverImage) return;
+    
     try {
-      if (!imageUrl.startsWith('data:')) {
-        loadImageAsUrl(imageUrl);
-        setEditingExistingImage(false);
-        return;
-      }
-
-      const parts = imageUrl.split(',');
-      if (parts.length < 2) {
-        console.error('Invalid data URL format');
-        setEditingExistingImage(false);
-        return;
-      }
-
-      let mimeType = 'image/jpeg';
-      const mimeMatch = parts[0].match(/:(.*?);/);
-      if (mimeMatch && mimeMatch[1]) {
-        mimeType = mimeMatch[1];
-      }
-
-      const tempImg = new Image();
-      tempImg.onload = () => {
-        try {
-          const base64Data = parts[1].trim();
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
           
-          try {
-            const byteCharacters = atob(base64Data);
-            const byteArrays = [];
-            
-            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-              const slice = byteCharacters.slice(offset, offset + 512);
-              
-              const byteNumbers = new Array(slice.length);
-              for (let i = 0; i < slice.length; i++) {
-                byteNumbers[i] = slice.charCodeAt(i);
-              }
-              
-              const byteArray = new Uint8Array(byteNumbers);
-              byteArrays.push(byteArray);
+          const dataUrl = canvas.toDataURL('image/jpeg');
+          const file = new File(
+            [dataURLtoBlob(dataUrl)], 
+            'trip-cover.jpg', 
+            { type: 'image/jpeg' }
+          );
+          
+          const event = {
+            target: {
+              files: [file]
             }
-            
-            const blob = new Blob(byteArrays, { type: mimeType });
-            const file = new File([blob], 'current-cover.jpg', { type: mimeType });
-            
-            const event = {
-              target: {
-                files: [file]
-              }
-            } as unknown as React.ChangeEvent<HTMLInputElement>;
-            
-            handleImageChange(event);
-          } catch (e) {
-            console.error('Error processing base64 data:', e);
-            loadImageAsDataUrl(imageUrl);
-          }
-        } catch (e) {
-          console.error('Base64 decoding failed:', e);
-          loadImageAsDataUrl(imageUrl);
+          } as unknown as React.ChangeEvent<HTMLInputElement>;
+          
+          handleImageChange(event);
         }
       };
       
-      tempImg.onerror = () => {
-        console.error('Image failed to load from data URL');
-        setEditingExistingImage(false);
+      img.onerror = () => {
+        console.error('Failed to load image from URL');
         toast({
-          title: "Failed to load image",
-          description: "The image data appears to be corrupted.",
+          title: "Error loading image",
+          description: "Could not load the trip cover image.",
           variant: "destructive",
         });
       };
       
-      tempImg.src = imageUrl;
+      if (trip.coverImage.startsWith('data:')) {
+        img.src = trip.coverImage;
+      } else {
+        fetch(trip.coverImage)
+          .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.blob();
+          })
+          .then(blob => {
+            const url = URL.createObjectURL(blob);
+            img.src = url;
+          })
+          .catch(error => {
+            console.error('Error loading image URL:', error);
+            toast({
+              title: "Error loading image",
+              description: "Could not load the image from URL.",
+              variant: "destructive",
+            });
+          });
+      }
     } catch (error) {
       console.error('Error in loadTripCoverImage:', error);
-      setEditingExistingImage(false);
+      toast({
+        title: "Error loading image",
+        description: "An unexpected error occurred while loading the image.",
+        variant: "destructive",
+      });
     }
   };
   
-  const loadImageAsDataUrl = (dataUrl: string) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(img, 0, 0);
-        
-        try {
-          const cleanDataUrl = canvas.toDataURL('image/jpeg');
-          
-          fetch(cleanDataUrl)
-            .then(res => res.blob())
-            .then(blob => {
-              const file = new File([blob], 'current-cover.jpg', { type: 'image/jpeg' });
-              
-              const event = {
-                target: {
-                  files: [file]
-                }
-              } as unknown as React.ChangeEvent<HTMLInputElement>;
-              
-              handleImageChange(event);
-            })
-            .catch(err => {
-              console.error('Error creating blob from clean data URL:', err);
-            });
-        } catch (e) {
-          console.error('Error creating clean data URL:', e);
-        }
+  const dataURLtoBlob = (dataURL: string): Blob => {
+    try {
+      const parts = dataURL.split(';base64,');
+      if (parts.length !== 2) {
+        throw new Error('Invalid data URL format');
       }
-    };
-    
-    img.onerror = () => {
-      console.error('Failed to load image from data URL');
-      setEditingExistingImage(false);
-    };
-    
-    img.src = dataUrl;
-  };
-  
-  const loadImageAsUrl = (url: string) => {
-    const tempImg = new Image();
-    tempImg.crossOrigin = 'anonymous';
-    
-    tempImg.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = tempImg.width;
-      canvas.height = tempImg.height;
       
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(tempImg, 0, 0);
-        
-        try {
-          const dataUrl = canvas.toDataURL('image/jpeg');
-          loadImageAsDataUrl(dataUrl);
-        } catch (e) {
-          console.error('Error creating data URL from canvas:', e);
-          fetchImageDirectly(url);
-        }
-      } else {
-        fetchImageDirectly(url);
+      const contentType = parts[0].split(':')[1] || 'image/jpeg';
+      const raw = window.atob(parts[1]);
+      const uInt8Array = new Uint8Array(raw.length);
+      
+      for (let i = 0; i < raw.length; i++) {
+        uInt8Array[i] = raw.charCodeAt(i);
       }
-    };
-    
-    tempImg.onerror = () => {
-      console.error('Image URL failed to load:', url);
-      fetchImageDirectly(url);
-    };
-    
-    tempImg.src = url;
-  };
-  
-  const fetchImageDirectly = (url: string) => {
-    fetch(url)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Failed to fetch image: ${response.status}`);
-        }
-        return response.blob();
-      })
-      .then(blob => {
-        const file = new File([blob], 'current-cover.jpg', { type: blob.type || 'image/jpeg' });
-        const event = {
-          target: {
-            files: [file]
-          }
-        } as unknown as React.ChangeEvent<HTMLInputElement>;
-        
-        handleImageChange(event);
-      })
-      .catch(error => {
-        console.error('Error loading image as URL:', error);
-        setEditingExistingImage(false);
-        toast({
-          title: "Failed to load image",
-          description: "Could not load the existing image for editing.",
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setEditingExistingImage(false);
-      });
+      
+      return new Blob([uInt8Array], { type: contentType });
+    } catch (error) {
+      console.error('Error converting data URL to blob:', error);
+      return new Blob([''], { type: 'image/jpeg' });
+    }
   };
   
   const addExistingSouvenir = async (souvenir: Souvenir) => {
@@ -309,8 +213,7 @@ const TripDetail: React.FC = () => {
     }
   };
   
-  const handleEditExistingImage = () => {
-    setEditingExistingImage(true);
+  const handleEditImage = () => {
     setIsPhotoDialogOpen(true);
   };
   
@@ -366,7 +269,10 @@ const TripDetail: React.FC = () => {
   const endDate = new Date(trip.dateRange.end);
   const formattedDateRange = `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
   
-  const hasCoverImage = trip.coverImage && typeof trip.coverImage === 'string' && trip.coverImage.trim() !== '';
+  const hasCoverImage = trip.coverImage && 
+    typeof trip.coverImage === 'string' && 
+    trip.coverImage.trim() !== '';
+  
   const coverImageStyle = hasCoverImage ? 
     { backgroundImage: `url(${trip.coverImage})` } : 
     { backgroundColor: '#f0f0f0' };
@@ -397,7 +303,7 @@ const TripDetail: React.FC = () => {
         </div>
         <button 
           className="absolute inset-0 w-full h-full opacity-0"
-          onClick={handleEditExistingImage}
+          onClick={handleEditImage}
           aria-label="Edit trip photo"
         ></button>
       </div>
@@ -520,8 +426,9 @@ const TripDetail: React.FC = () => {
       <Dialog open={isPhotoDialogOpen} onOpenChange={(open) => {
         if (!open) {
           setIsPhotoDialogOpen(false);
-          setEditingExistingImage(false);
-          removeImage(0);
+          if (imageUrls.length > 0) {
+            removeImage(0);
+          }
         }
       }}>
         <DialogContent className="sm:max-w-md">
@@ -555,7 +462,9 @@ const TripDetail: React.FC = () => {
               <Button 
                 variant="outline" 
                 onClick={() => {
-                  removeImage(0);
+                  if (imageUrls.length > 0) {
+                    removeImage(0);
+                  }
                   setIsPhotoDialogOpen(false);
                 }}
               >
