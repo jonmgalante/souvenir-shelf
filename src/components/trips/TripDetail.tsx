@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip, Souvenir } from '../../context/souvenir';
@@ -9,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { toast } from '../ui/use-toast';
+import { ScrollArea } from '../ui/scroll-area';
 
 const TripDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -122,7 +124,7 @@ const TripDetail: React.FC = () => {
   const formattedDateRange = `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
   
   return (
-    <div className="souvenir-container animate-fade-in">
+    <div className="souvenir-container animate-fade-in pb-24">
       <div className="flex items-center space-x-4 mb-6">
         <button onClick={() => navigate('/trips')} className="p-2 hover:bg-secondary rounded-full">
           <ArrowLeft className="h-5 w-5" />
@@ -224,29 +226,31 @@ const TripDetail: React.FC = () => {
             />
             
             {filteredSouvenirs.length > 0 ? (
-              <div className="max-h-[60vh] overflow-y-auto space-y-2">
-                {filteredSouvenirs.map(souvenir => (
-                  <div 
-                    key={souvenir.id}
-                    className="flex items-center p-2 rounded-lg border border-input hover:bg-accent cursor-pointer"
-                    onClick={() => !isAddingToTrip && addExistingSouvenir(souvenir)}
-                  >
+              <ScrollArea className="max-h-[50vh]">
+                <div className="space-y-2">
+                  {filteredSouvenirs.map(souvenir => (
                     <div 
-                      className="w-16 h-16 rounded-md bg-secondary mr-3 bg-cover bg-center"
-                      style={{
-                        backgroundImage: souvenir.images && souvenir.images.length > 0
-                          ? `url(${souvenir.images[0]})`
-                          : 'none'
-                      }}
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium">{souvenir.name}</h3>
-                      <p className="text-sm text-muted-foreground">{souvenir.location.city}, {souvenir.location.country}</p>
+                      key={souvenir.id}
+                      className="flex items-center p-2 rounded-lg border border-input hover:bg-accent cursor-pointer"
+                      onClick={() => !isAddingToTrip && addExistingSouvenir(souvenir)}
+                    >
+                      <div 
+                        className="w-16 h-16 rounded-md bg-secondary mr-3 bg-cover bg-center"
+                        style={{
+                          backgroundImage: souvenir.images && souvenir.images.length > 0
+                            ? `url(${souvenir.images[0]})`
+                            : 'none'
+                        }}
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-medium">{souvenir.name}</h3>
+                        <p className="text-sm text-muted-foreground">{souvenir.location.city}, {souvenir.location.country}</p>
+                      </div>
+                      {isAddingToTrip && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>}
                     </div>
-                    {isAddingToTrip && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>}
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              </ScrollArea>
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
