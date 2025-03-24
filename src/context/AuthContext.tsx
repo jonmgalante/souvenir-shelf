@@ -180,8 +180,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const googleSignIn = async () => {
     try {
-      // Fix: Use the full current URL as the base for redirectTo
-      const redirectUrl = `${window.location.origin}/collection`;
+      // Use the production URL for redirectTo
+      const redirectUrl = 'https://www.souvieshelf.com/collection';
       console.log('Google sign-in redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOAuth({
@@ -206,8 +206,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const instagramSignIn = async () => {
     try {
-      // Fix: Use the full current URL as the base for redirectTo
-      const redirectUrl = `${window.location.origin}/collection`;
+      // Use the production URL for redirectTo
+      const redirectUrl = 'https://www.souvieshelf.com/collection';
       console.log('Instagram sign-in redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOAuth({

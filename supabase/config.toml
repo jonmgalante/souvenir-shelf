@@ -21,8 +21,8 @@ smtp_port = 54325
 pop3_port = 54326
 
 [auth]
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000", "http://localhost:3000", "http://localhost:3000/auth", "https://localhost:3000/auth", "http://localhost:3000/collection", "https://localhost:3000/collection"]
+site_url = "https://www.souvieshelf.com"
+additional_redirect_urls = ["https://www.souvieshelf.com", "https://www.souvieshelf.com/auth", "https://www.souvieshelf.com/collection"]
 jwt_expiry = 3600
 enable_refresh_token_rotation = true
 refresh_token_reuse_interval = 10
