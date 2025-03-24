@@ -18,7 +18,7 @@ if (link) {
 }
 
 // Set the page title
-document.title = 'SouvieShelf';
+document.title = 'SouvieShelf - Your Travel Archive';
 
 // Clear any existing root content before rendering
 const rootElement = document.getElementById("root")!;

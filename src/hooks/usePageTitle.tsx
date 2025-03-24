@@ -8,7 +8,7 @@ import { useEffect } from 'react';
  */
 const usePageTitle = (title?: string, withAppName: boolean = true) => {
   useEffect(() => {
-    const appName = 'SouvieShelf';
+    const appName = 'SouvieShelf - Your Travel Archive';
     
     if (!title) {
       document.title = appName;
