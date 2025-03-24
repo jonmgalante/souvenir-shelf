@@ -9,4 +9,7 @@ if (link) {
   link.href = link.href + '?v=' + new Date().getTime();
 }
 
+// Also update the page title directly to ensure it's set
+document.title = 'SouvieShelf';
+
 createRoot(document.getElementById("root")!).render(<App />);

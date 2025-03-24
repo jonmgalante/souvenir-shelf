@@ -28,8 +28,8 @@ const AppContent = () => {
   
   return (
     <Routes>
-      {/* Root route redirects to collection or auth based on auth state */}
-      <Route path="/" element={<Layout><SouvenirGrid /></Layout>} />
+      {/* Root route redirects to collection */}
+      <Route path="/" element={<Navigate to="/collection" replace />} />
       <Route path="/auth" element={<AuthScreen />} />
       
       {/* Main routes */}
