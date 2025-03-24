@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/auth'; // Updated import path
 import { toast } from '@/components/ui/use-toast';
 
 interface AuthFormProps {

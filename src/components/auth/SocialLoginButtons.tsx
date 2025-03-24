@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/auth'; // Updated import path
 import { toast } from '@/components/ui/use-toast';
 
 interface SocialLoginButtonsProps {
