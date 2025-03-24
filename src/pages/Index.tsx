@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSouvenirs } from '../context/souvenir';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/auth';
 import Layout from '../components/Layout';
 import WelcomeScreen from '../components/WelcomeScreen';
 import { Skeleton } from '@/components/ui/skeleton';

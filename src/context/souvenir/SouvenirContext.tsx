@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useEffect } from 'react';
-import { useAuth } from '../AuthContext';
+import { useAuth } from '@/context/auth';
 import { toast } from '@/components/ui/use-toast';
 import { Souvenir } from '../../types/souvenir';
 import { Trip } from '../../types/trip';

@@ -2,7 +2,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Map, Grid, FolderPlus, PlusCircle, User, LogOut } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 import LogoutButton from './auth/LogoutButton';
 
 const Navigation: React.FC = () => {
