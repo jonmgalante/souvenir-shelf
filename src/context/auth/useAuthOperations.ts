@@ -92,33 +92,10 @@ export const useAuthOperations = (
     }
   };
 
-  const instagramSignIn = async () => {
-    try {
-      const redirectUrl = getRedirectUrl();
-      console.log('Instagram sign-in redirect URL:', redirectUrl);
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'facebook',
-        options: {
-          redirectTo: redirectUrl,
-          scopes: 'instagram_basic,instagram_content_publish',
-        },
-      });
-      
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      console.error('Social sign in error:', error);
-      throw error;
-    }
-  };
-
   return {
     signIn,
     signUp,
     signOut,
-    googleSignIn,
-    instagramSignIn
+    googleSignIn
   };
 };
