@@ -15,5 +15,4 @@ export type AuthContextType = {
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   googleSignIn: () => Promise<void>;
-  instagramSignIn: () => Promise<void>;
 };

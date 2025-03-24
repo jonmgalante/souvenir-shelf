@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
@@ -13,7 +12,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState<boolean>(true);
   const [initialized, setInitialized] = useState<boolean>(false);
 
-  const { signIn, signUp, signOut, googleSignIn, instagramSignIn } = 
+  const { signIn, signUp, signOut, googleSignIn } = 
     useAuthOperations(setUser, setLoading);
 
   useEffect(() => {
@@ -90,7 +89,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     googleSignIn,
-    instagramSignIn,
   };
 
   console.log('AuthProvider: Current state:', { user: !!user, loading, initialized });
