@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const googleSignIn = async () => {
     try {
-      // Use the production URL for redirectTo
+      // Hardcode the production URL and never use localhost
       const redirectUrl = 'https://www.souvieshelf.com/collection';
       console.log('Google sign-in redirect URL:', redirectUrl);
       
@@ -206,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const instagramSignIn = async () => {
     try {
-      // Use the production URL for redirectTo
+      // Hardcode the production URL and never use localhost
       const redirectUrl = 'https://www.souvieshelf.com/collection';
       console.log('Instagram sign-in redirect URL:', redirectUrl);
       

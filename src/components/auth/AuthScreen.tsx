@@ -15,11 +15,15 @@ const AuthScreen: React.FC = () => {
   // Check for session and set up auth state change listener
   const { hasSession } = useSessionCheck();
 
-  // Check for hash fragment on initial load (for OAuth redirects)
+  // Check for access tokens in different formats
   useEffect(() => {
+    // Check for hash fragment (OAuth redirects)
     const hashFragment = window.location.hash;
-    if (hashFragment && hashFragment.includes('access_token')) {
-      console.log('AuthScreen - Found access_token in URL hash, redirecting to collection');
+    const queryParams = new URLSearchParams(window.location.search);
+    const accessToken = queryParams.get('access_token');
+    
+    if ((hashFragment && hashFragment.includes('access_token')) || accessToken) {
+      console.log('AuthScreen - Found access_token, redirecting to collection');
       navigate('/collection', { replace: true });
     }
   }, [navigate]);

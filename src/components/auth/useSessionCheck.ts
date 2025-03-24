@@ -14,15 +14,21 @@ const useSessionCheck = () => {
     
     // Handle hash fragment for OAuth redirects
     const handleHashFragment = () => {
+      // Look for both hash fragment and query parameter formats
       const hashFragment = window.location.hash;
-      if (hashFragment && hashFragment.includes('access_token')) {
-        console.log('useSessionCheck - Found access_token in URL hash, redirecting to collection');
+      const queryParams = new URLSearchParams(window.location.search);
+      const accessToken = queryParams.get('access_token');
+      
+      if ((hashFragment && hashFragment.includes('access_token')) || accessToken) {
+        console.log('useSessionCheck - Found access_token, redirecting to collection');
         
-        // OAuth providers redirect with a hash containing the access token
-        // We should redirect the user to the collection page
-        if (mounted) {
-          navigate('/collection', { replace: true });
-        }
+        // Important: Wait a moment to let Supabase process the token before redirecting
+        setTimeout(() => {
+          if (mounted) {
+            navigate('/collection', { replace: true });
+          }
+        }, 100);
+        
         return true;
       }
       return false;
@@ -30,7 +36,7 @@ const useSessionCheck = () => {
     
     const checkSession = async () => {
       try {
-        // First check if we have an access token in the URL hash
+        // First check if we have an access token in the URL
         if (handleHashFragment()) {
           return;
         }
