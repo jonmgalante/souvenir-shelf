@@ -12,8 +12,29 @@ const useSessionCheck = () => {
   useEffect(() => {
     let mounted = true;
     
+    // Handle hash fragment for OAuth redirects
+    const handleHashFragment = () => {
+      const hashFragment = window.location.hash;
+      if (hashFragment && hashFragment.includes('access_token')) {
+        console.log('useSessionCheck - Found access_token in URL hash, redirecting to collection');
+        
+        // OAuth providers redirect with a hash containing the access token
+        // We should redirect the user to the collection page
+        if (mounted) {
+          navigate('/collection', { replace: true });
+        }
+        return true;
+      }
+      return false;
+    };
+    
     const checkSession = async () => {
       try {
+        // First check if we have an access token in the URL hash
+        if (handleHashFragment()) {
+          return;
+        }
+        
         const { data } = await supabase.auth.getSession();
         const sessionExists = !!data.session;
         
@@ -46,8 +67,8 @@ const useSessionCheck = () => {
       console.log('useSessionCheck - Auth state changed:', event);
       
       if (mounted) {
-        if (event === 'SIGNED_IN' && session && location.pathname === '/auth') {
-          console.log('useSessionCheck - User signed in on auth page, redirecting to collection');
+        if (event === 'SIGNED_IN' && session) {
+          console.log('useSessionCheck - User signed in, redirecting to collection');
           navigate('/collection', { replace: true });
         } else if (event === 'SIGNED_OUT') {
           console.log('useSessionCheck - User signed out');

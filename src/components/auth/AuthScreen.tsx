@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ErrorMessage from './ErrorMessage';
 import AuthForm from './AuthForm';
 import SocialLoginButtons from './SocialLoginButtons';
@@ -8,9 +10,19 @@ const AuthScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   // Check for session and set up auth state change listener
-  useSessionCheck();
+  const { hasSession } = useSessionCheck();
+
+  // Check for hash fragment on initial load (for OAuth redirects)
+  useEffect(() => {
+    const hashFragment = window.location.hash;
+    if (hashFragment && hashFragment.includes('access_token')) {
+      console.log('AuthScreen - Found access_token in URL hash, redirecting to collection');
+      navigate('/collection', { replace: true });
+    }
+  }, [navigate]);
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
