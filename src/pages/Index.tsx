@@ -1,20 +1,17 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/auth';
 
-// This file is deprecated and should not be used directly.
-// It's kept for backward compatibility only.
 const Index: React.FC = () => {
-  const { user, loading } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Immediately redirect regardless of auth state
+    // Immediately redirect to collection with no conditions
+    console.log("Index page accessed, redirecting to collection");
     navigate('/collection', { replace: true });
-  }, [navigate]);
+  }, []);
   
-  // Render nothing as this will redirect immediately
+  // This will never render as the redirect happens immediately
   return null;
 };
 

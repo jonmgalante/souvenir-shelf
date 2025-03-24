@@ -9,7 +9,7 @@ if (link) {
   link.href = link.href + '?v=' + new Date().getTime();
 }
 
-// Set the page title directly
+// Set the page title
 document.title = 'SouvieShelf';
 
 // Clear any existing root content before rendering

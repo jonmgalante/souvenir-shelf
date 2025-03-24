@@ -30,6 +30,10 @@ const AppContent = () => {
     <Routes>
       {/* Root route redirects directly to collection */}
       <Route path="/" element={<Navigate to="/collection" replace />} />
+      
+      {/* Handle index route explicitly - redirect to collection */}
+      <Route path="/index" element={<Navigate to="/collection" replace />} />
+      
       <Route path="/auth" element={<AuthScreen />} />
       
       {/* Main routes */}

@@ -29,6 +29,13 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       pathname: location.pathname 
     });
 
+    // Handle root or index redirects
+    if (location.pathname === '/' || location.pathname === '/index') {
+      console.log('Layout: Root or index path detected, redirecting to collection');
+      navigate('/collection', { replace: true });
+      return;
+    }
+
     // Only attempt redirects once authentication state is determined
     if (!loading) {
       // If not authenticated and not on auth page, redirect to auth

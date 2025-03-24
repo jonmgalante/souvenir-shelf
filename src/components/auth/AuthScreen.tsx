@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import AuthForm from './AuthForm';
 import SocialLoginButtons from './SocialLoginButtons';
@@ -10,6 +10,7 @@ import useSessionCheck from './useSessionCheck';
 const AuthScreen: React.FC = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   
@@ -20,11 +21,18 @@ const AuthScreen: React.FC = () => {
   usePageTitle(isLogin ? 'Sign In' : 'Sign Up');
   
   useEffect(() => {
+    // First check for root or index path
+    if (location.pathname === '/' || location.pathname === '/index') {
+      console.log('AuthScreen: Root or index path detected, redirecting to collection');
+      navigate('/collection', { replace: true });
+      return;
+    }
+    
     if (user) {
       console.log('AuthScreen: User is authenticated, redirecting to collection');
       navigate('/collection', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.pathname]);
   
   const handleToggleMode = () => {
     setIsLogin(!isLogin);

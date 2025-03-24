@@ -19,6 +19,13 @@ const useSessionCheck = () => {
       const currentUrl = window.location.href;
       console.log('useSessionCheck - Current URL:', currentUrl);
       
+      // Handle redirects from root or index path
+      if (location.pathname === '/' || location.pathname === '/index') {
+        console.log('useSessionCheck - Detected root or index path, redirecting to collection');
+        navigate('/collection', { replace: true });
+        return true;
+      }
+      
       // Look for both hash fragment and query parameter formats
       if (
         (currentUrl.includes('#access_token=') || currentUrl.includes('?access_token=')) &&
@@ -55,8 +62,8 @@ const useSessionCheck = () => {
           setHasSession(sessionExists);
           
           // Only redirect if we're on the auth page and have a session
-          if (sessionExists && location.pathname === '/auth') {
-            console.log('useSessionCheck - On auth page with session, redirecting to collection');
+          if (sessionExists && (location.pathname === '/auth' || location.pathname === '/' || location.pathname === '/index')) {
+            console.log('useSessionCheck - On auth/root/index page with session, redirecting to collection');
             navigate('/collection', { replace: true });
           }
           
