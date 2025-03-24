@@ -20,4 +20,11 @@ if (rootElement) {
   
   // Render the app
   createRoot(rootElement).render(<App />);
+} else {
+  console.error("Root element not found - this may cause rendering issues");
+  // Create a root element if it doesn't exist (fallback for some browser issues)
+  const newRoot = document.createElement('div');
+  newRoot.id = 'root';
+  document.body.appendChild(newRoot);
+  createRoot(newRoot).render(<App />);
 }

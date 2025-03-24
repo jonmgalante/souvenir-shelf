@@ -19,6 +19,7 @@ import TripFolders from "./components/trips/TripFolders";
 import TripDetail from "./components/trips/TripDetail";
 import ProfileScreen from "./components/profile/ProfileScreen";
 import NotFound from "./pages/NotFound";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -28,11 +29,12 @@ const AppContent = () => {
   
   return (
     <Routes>
-      {/* Root route redirects directly to collection */}
+      {/* Root route */}
       <Route path="/" element={<Navigate to="/collection" replace />} />
       
-      {/* Handle index route explicitly - redirect to collection */}
-      <Route path="/index" element={<Navigate to="/collection" replace />} />
+      {/* Handle index route explicitly with dedicated component that forces redirect */}
+      <Route path="/index" element={<Index />} />
+      <Route path="/index.html" element={<Index />} />
       
       <Route path="/auth" element={<AuthScreen />} />
       
@@ -59,7 +61,7 @@ const App = () => {
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter basename="/">
               <AppContent />
             </BrowserRouter>
           </TooltipProvider>

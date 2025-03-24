@@ -19,10 +19,13 @@ const useSessionCheck = () => {
       const currentUrl = window.location.href;
       console.log('useSessionCheck - Current URL:', currentUrl);
       
-      // Handle redirects from root or index path
-      if (location.pathname === '/' || location.pathname === '/index') {
+      // Handle redirects from root or index path with both methods to ensure it works
+      if (location.pathname === '/' || 
+          location.pathname === '/index' || 
+          location.pathname === '/index.html') {
         console.log('useSessionCheck - Detected root or index path, redirecting to collection');
-        navigate('/collection', { replace: true });
+        // Hard redirect for problematic browsers
+        window.location.href = '/collection';
         return true;
       }
       
@@ -62,8 +65,13 @@ const useSessionCheck = () => {
           setHasSession(sessionExists);
           
           // Only redirect if we're on the auth page and have a session
-          if (sessionExists && (location.pathname === '/auth' || location.pathname === '/' || location.pathname === '/index')) {
+          if (sessionExists && (location.pathname === '/auth' || 
+                              location.pathname === '/' || 
+                              location.pathname === '/index' || 
+                              location.pathname === '/index.html')) {
             console.log('useSessionCheck - On auth/root/index page with session, redirecting to collection');
+            // Use both methods to ensure it works across browsers
+            window.location.href = '/collection';
             navigate('/collection', { replace: true });
           }
           
@@ -98,6 +106,8 @@ const useSessionCheck = () => {
             title: "Signed in successfully",
             description: "Welcome back!",
           });
+          // Use both methods to ensure it works across browsers
+          window.location.href = '/collection';
           navigate('/collection', { replace: true });
         } else if (event === 'SIGNED_OUT') {
           setHasSession(false);
