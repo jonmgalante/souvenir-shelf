@@ -5,12 +5,16 @@ import { useAuth } from '@/context/auth';
 import AuthForm from './AuthForm';
 import SocialLoginButtons from './SocialLoginButtons';
 import usePageTitle from '@/hooks/usePageTitle';
+import useSessionCheck from './useSessionCheck';
 
 const AuthScreen: React.FC = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
+  
+  // Run session check to handle OAuth redirects
+  useSessionCheck();
   
   // Set the page title
   usePageTitle(isLogin ? 'Sign In' : 'Sign Up');

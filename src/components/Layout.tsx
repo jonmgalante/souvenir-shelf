@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import Navigation from './Navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/auth';
@@ -17,7 +17,6 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const isAuthPage = location.pathname === '/auth';
-  const [redirectAttempted, setRedirectAttempted] = useState(false);
   
   // Set default page title
   usePageTitle();
@@ -27,30 +26,31 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       user: !!user, 
       loading, 
       isAuthPage,
-      redirectAttempted,
       pathname: location.pathname 
     });
 
-    // Only attempt redirects once authentication state is determined (loading is false)
+    // Only attempt redirects once authentication state is determined
     if (!loading) {
       // If not authenticated and not on auth page, redirect to auth
-      if (!user && !isAuthPage && !redirectAttempted) {
+      if (!user && !isAuthPage) {
         console.log('Layout: User not authenticated, redirecting to auth page');
-        setRedirectAttempted(true);
         toast({
           title: "Authentication required",
           description: "Please sign in to access this page",
           variant: "destructive",
         });
         navigate('/auth', { replace: true });
+        return;
+      }
+      
+      // If authenticated and on auth page, redirect to collection
+      if (user && isAuthPage) {
+        console.log('Layout: User authenticated on auth page, redirecting to collection');
+        navigate('/collection', { replace: true });
+        return;
       }
     }
-  }, [user, loading, isAuthPage, navigate, redirectAttempted, location.pathname]);
-
-  // Reset redirect flag when route changes
-  useEffect(() => {
-    setRedirectAttempted(false);
-  }, [location.pathname]);
+  }, [user, loading, isAuthPage, navigate, location.pathname]);
 
   // Show loading state while checking authentication
   if (loading) {

@@ -28,7 +28,7 @@ const AppContent = () => {
   
   return (
     <Routes>
-      {/* Root route redirects to collection */}
+      {/* Root route redirects directly to collection */}
       <Route path="/" element={<Navigate to="/collection" replace />} />
       <Route path="/auth" element={<AuthScreen />} />
       
