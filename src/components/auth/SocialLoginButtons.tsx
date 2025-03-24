@@ -12,9 +12,11 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ loading, setLoa
   const { googleSignIn, instagramSignIn } = useAuth();
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
+      console.log('Starting Google sign-in process');
       await googleSignIn();
+      // Note: We don't need to setLoading(false) here because the redirect will happen
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       toast({
@@ -22,15 +24,16 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ loading, setLoa
         description: error.message || 'An error occurred during Google sign-in',
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };
 
   const handleInstagramSignIn = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
+      console.log('Starting Instagram sign-in process');
       await instagramSignIn();
+      // Note: We don't need to setLoading(false) here because the redirect will happen
     } catch (error: any) {
       console.error('Instagram sign-in error:', error);
       toast({
@@ -38,7 +41,6 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ loading, setLoa
         description: error.message || 'An error occurred during Instagram sign-in',
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
     }
   };

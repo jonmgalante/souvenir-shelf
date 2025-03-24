@@ -137,8 +137,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         throw error;
       }
-      
-      // Toast notification removed
     } catch (error: any) {
       console.error('Sign in error:', error);
       throw error;
@@ -163,8 +161,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         throw error;
       }
-      
-      // Toast notification removed
     } catch (error: any) {
       console.error('Sign up error:', error);
       throw error;
@@ -176,7 +172,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      // Toast notification removed
     } catch (error: any) {
       console.error('Sign out error:', error);
       throw error;
@@ -185,10 +180,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const googleSignIn = async () => {
     try {
+      // Fix: Use the full current URL as the base for redirectTo
+      const redirectUrl = `${window.location.origin}/collection`;
+      console.log('Google sign-in redirect URL:', redirectUrl);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/collection',
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
       
@@ -203,10 +206,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const instagramSignIn = async () => {
     try {
+      // Fix: Use the full current URL as the base for redirectTo
+      const redirectUrl = `${window.location.origin}/collection`;
+      console.log('Instagram sign-in redirect URL:', redirectUrl);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: window.location.origin + '/collection',
+          redirectTo: redirectUrl,
           scopes: 'instagram_basic,instagram_content_publish',
         },
       });
