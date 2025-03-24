@@ -52,9 +52,8 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
     setRedirectAttempted(false);
   }, [location.pathname]);
 
-  // Show loading state only when checking authentication and not on the auth page
-  if (loading && !isAuthPage) {
-    console.log('Layout: Showing loading state');
+  // Show loading state while checking authentication
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-md space-y-4">
@@ -63,7 +62,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-32 w-full" />
         </div>
-        <p className="text-muted-foreground mt-4">Loading authentication...</p>
+        <p className="text-muted-foreground mt-4">Loading...</p>
       </div>
     );
   }

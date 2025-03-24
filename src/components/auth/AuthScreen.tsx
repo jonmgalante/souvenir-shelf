@@ -26,6 +26,15 @@ const AuthScreen: React.FC = () => {
     setIsLogin(!isLogin);
   };
   
+  // If still loading auth state, show minimal loading indicator
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 p-4">
       <div className="w-full max-w-md">
