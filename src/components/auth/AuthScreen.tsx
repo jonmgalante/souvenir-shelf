@@ -5,6 +5,7 @@ import ErrorMessage from './ErrorMessage';
 import AuthForm from './AuthForm';
 import SocialLoginButtons from './SocialLoginButtons';
 import useSessionCheck from './useSessionCheck';
+import { toast } from '@/components/ui/use-toast';
 
 const AuthScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,16 +16,36 @@ const AuthScreen: React.FC = () => {
   // Check for session and set up auth state change listener
   const { hasSession } = useSessionCheck();
 
-  // Check for access tokens in different formats
+  // Check for redirect with access token
   useEffect(() => {
-    // Check for hash fragment (OAuth redirects)
-    const hashFragment = window.location.hash;
-    const queryParams = new URLSearchParams(window.location.search);
-    const accessToken = queryParams.get('access_token');
-    
-    if ((hashFragment && hashFragment.includes('access_token')) || accessToken) {
-      console.log('AuthScreen - Found access_token, redirecting to collection');
-      navigate('/collection', { replace: true });
+    // Function to detect if we're on an OAuth callback with tokens
+    const isAuthCallback = () => {
+      const url = window.location.href;
+      // Check for various ways the token might appear
+      return (
+        url.includes('#access_token=') || 
+        url.includes('?access_token=') || 
+        url.includes('&access_token=') ||
+        url.includes('code=')
+      );
+    };
+
+    if (isAuthCallback()) {
+      console.log('AuthScreen - Detected OAuth callback with tokens');
+      // Let the user know we're processing their login
+      toast({
+        title: "Processing sign-in",
+        description: "Please wait while we complete your authentication...",
+      });
+      
+      // Set loading state to prevent other actions
+      setLoading(true);
+      
+      // Give supabase client time to process the token
+      setTimeout(() => {
+        console.log('AuthScreen - Redirecting after OAuth callback processing');
+        navigate('/collection', { replace: true });
+      }, 1000);
     }
   }, [navigate]);
 
@@ -67,7 +88,7 @@ const AuthScreen: React.FC = () => {
       </div>
       
       <footer className="mt-8 mb-2 text-center text-sm text-muted-foreground">
-        {/* Footer content removed as in original */}
+        {/* Footer content */}
       </footer>
     </div>
   );

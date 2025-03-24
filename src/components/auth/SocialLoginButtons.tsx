@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '../../context/auth'; // Updated import path
+import { useAuth } from '@/context/auth';
 import { toast } from '@/components/ui/use-toast';
 
 interface SocialLoginButtonsProps {
@@ -12,9 +12,17 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ loading, setLoa
   const { googleSignIn, instagramSignIn } = useAuth();
 
   const handleGoogleSignIn = async () => {
+    if (loading) return;
+    
     try {
       setLoading(true);
       console.log('Starting Google sign-in process');
+      
+      toast({
+        title: "Redirecting to Google",
+        description: "You'll be redirected to Google to sign in",
+      });
+      
       await googleSignIn();
       // Note: We don't need to setLoading(false) here because the redirect will happen
     } catch (error: any) {
@@ -29,9 +37,17 @@ const SocialLoginButtons: React.FC<SocialLoginButtonsProps> = ({ loading, setLoa
   };
 
   const handleInstagramSignIn = async () => {
+    if (loading) return;
+    
     try {
       setLoading(true);
       console.log('Starting Instagram sign-in process');
+      
+      toast({
+        title: "Redirecting to Instagram",
+        description: "You'll be redirected to Instagram to sign in",
+      });
+      
       await instagramSignIn();
       // Note: We don't need to setLoading(false) here because the redirect will happen
     } catch (error: any) {

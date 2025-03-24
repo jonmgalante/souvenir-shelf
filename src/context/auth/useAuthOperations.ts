@@ -4,6 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatUser } from './utils';
 import { AuthUser } from './types';
 
+// Get the current domain for OAuth redirects
+const getRedirectUrl = () => {
+  const isProd = window.location.hostname !== 'localhost';
+  // This ensures we use the current domain for production or the preview domain 
+  // But hardcode to production as fallback
+  return isProd 
+    ? `${window.location.origin}/collection`
+    : 'https://www.souvieshelf.com/collection';
+};
+
 export const useAuthOperations = (
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>,
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
@@ -59,8 +69,7 @@ export const useAuthOperations = (
 
   const googleSignIn = async () => {
     try {
-      // Hardcode the production URL and never use localhost
-      const redirectUrl = 'https://www.souvieshelf.com/collection';
+      const redirectUrl = getRedirectUrl();
       console.log('Google sign-in redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOAuth({
@@ -85,8 +94,7 @@ export const useAuthOperations = (
 
   const instagramSignIn = async () => {
     try {
-      // Hardcode the production URL and never use localhost
-      const redirectUrl = 'https://www.souvieshelf.com/collection';
+      const redirectUrl = getRedirectUrl();
       console.log('Instagram sign-in redirect URL:', redirectUrl);
       
       const { error } = await supabase.auth.signInWithOAuth({

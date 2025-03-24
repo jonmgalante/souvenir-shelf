@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 const useSessionCheck = () => {
   const navigate = useNavigate();
@@ -12,22 +13,26 @@ const useSessionCheck = () => {
   useEffect(() => {
     let mounted = true;
     
-    // Handle hash fragment for OAuth redirects
-    const handleHashFragment = () => {
-      // Look for both hash fragment and query parameter formats
-      const hashFragment = window.location.hash;
-      const queryParams = new URLSearchParams(window.location.search);
-      const accessToken = queryParams.get('access_token');
+    // Handle hash fragment or query string for OAuth redirects
+    const handleAuthRedirect = () => {
+      // Get the current URL
+      const currentUrl = window.location.href;
+      console.log('useSessionCheck - Current URL:', currentUrl);
       
-      if ((hashFragment && hashFragment.includes('access_token')) || accessToken) {
-        console.log('useSessionCheck - Found access_token, redirecting to collection');
+      // Look for both hash fragment and query parameter formats
+      if (
+        (currentUrl.includes('#access_token=') || currentUrl.includes('?access_token=')) &&
+        (currentUrl.includes('type=recovery') || currentUrl.includes('type=signup') || currentUrl.includes('type=magiclink'))
+      ) {
+        console.log('useSessionCheck - Found auth redirect with access_token, handling auth redirect');
         
-        // Important: Wait a moment to let Supabase process the token before redirecting
+        // Important: This will be handled by Supabase automatically
+        // Just wait a moment to let Supabase process the token before we check the session
         setTimeout(() => {
           if (mounted) {
-            navigate('/collection', { replace: true });
+            checkSession();
           }
-        }, 100);
+        }, 500);
         
         return true;
       }
@@ -36,8 +41,8 @@ const useSessionCheck = () => {
     
     const checkSession = async () => {
       try {
-        // First check if we have an access token in the URL
-        if (handleHashFragment()) {
+        // First check if we have an auth redirect to handle
+        if (handleAuthRedirect()) {
           return;
         }
         
@@ -59,6 +64,12 @@ const useSessionCheck = () => {
         }
       } catch (error) {
         console.error('useSessionCheck - Error checking session:', error);
+        toast({
+          title: "Session error",
+          description: "There was a problem checking your authentication status",
+          variant: "destructive",
+        });
+        
         if (mounted) {
           setHasSession(false);
           setCheckComplete(true);
@@ -74,11 +85,21 @@ const useSessionCheck = () => {
       
       if (mounted) {
         if (event === 'SIGNED_IN' && session) {
+          setHasSession(true);
           console.log('useSessionCheck - User signed in, redirecting to collection');
+          toast({
+            title: "Signed in successfully",
+            description: "Welcome back!",
+          });
           navigate('/collection', { replace: true });
         } else if (event === 'SIGNED_OUT') {
+          setHasSession(false);
           console.log('useSessionCheck - User signed out');
           if (location.pathname !== '/auth') {
+            toast({
+              title: "Signed out",
+              description: "You have been signed out",
+            });
             navigate('/auth', { replace: true });
           }
         }
