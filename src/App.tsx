@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/auth"; 
 import { SouvenirProvider } from "./context/souvenir";
+import usePageTitle from "./hooks/usePageTitle";
 
 // Pages
 import Index from "./pages/Index";
@@ -24,6 +25,30 @@ import ProfileScreen from "./components/profile/ProfileScreen";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  // Set default app title
+  usePageTitle();
+  
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/auth" element={<AuthScreen />} />
+      
+      {/* Main routes */}
+      <Route path="/collection" element={<Layout><SouvenirGrid /></Layout>} />
+      <Route path="/souvenir/:id" element={<Layout><SouvenirDetail /></Layout>} />
+      <Route path="/add" element={<Layout><AddSouvenir /></Layout>} />
+      <Route path="/map" element={<Layout><MapView /></Layout>} />
+      <Route path="/trips" element={<Layout><TripFolders /></Layout>} />
+      <Route path="/trip/:id" element={<Layout><TripDetail /></Layout>} />
+      <Route path="/profile" element={<Layout><ProfileScreen /></Layout>} />
+      
+      {/* Catch all */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -33,22 +58,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<AuthScreen />} />
-                
-                {/* Main routes */}
-                <Route path="/collection" element={<Layout><SouvenirGrid /></Layout>} />
-                <Route path="/souvenir/:id" element={<Layout><SouvenirDetail /></Layout>} />
-                <Route path="/add" element={<Layout><AddSouvenir /></Layout>} />
-                <Route path="/map" element={<Layout><MapView /></Layout>} />
-                <Route path="/trips" element={<Layout><TripFolders /></Layout>} />
-                <Route path="/trip/:id" element={<Layout><TripDetail /></Layout>} />
-                <Route path="/profile" element={<Layout><ProfileScreen /></Layout>} />
-                
-                {/* Catch all */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <AppContent />
             </BrowserRouter>
           </TooltipProvider>
         </SouvenirProvider>

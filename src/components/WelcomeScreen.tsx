@@ -1,13 +1,17 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Map, Grid, FolderPlus, User, LogOut } from 'lucide-react';
+import { Map, Grid, FolderPlus, User } from 'lucide-react';
 import { useAuth } from '@/context/auth';
 import LogoutButton from './auth/LogoutButton';
+import usePageTitle from '@/hooks/usePageTitle';
 
 const WelcomeScreen: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  // Set the page title for the welcome screen
+  usePageTitle('Welcome');
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -63,7 +67,7 @@ const WelcomeScreen: React.FC = () => {
       </div>
       
       <footer className="text-center py-4 text-sm text-muted-foreground">
-        <p>Souvenir Shelf &copy; {new Date().getFullYear()}</p>
+        <p>SouvieShelf &copy; {new Date().getFullYear()}</p>
       </footer>
     </div>
   );

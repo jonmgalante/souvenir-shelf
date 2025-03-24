@@ -2,9 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import Navigation from './Navigation';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/auth'; // Updated import path
+import { useAuth } from '../context/auth';
 import { toast } from '@/components/ui/use-toast';
 import { Skeleton } from './ui/skeleton';
+import usePageTitle from '@/hooks/usePageTitle';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -17,6 +18,9 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
   const { user, loading } = useAuth();
   const isAuthPage = location.pathname === '/auth';
   const [redirectAttempted, setRedirectAttempted] = useState(false);
+  
+  // Set default page title
+  usePageTitle();
 
   useEffect(() => {
     console.log('Layout: Auth state changed', { 
