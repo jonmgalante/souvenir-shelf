@@ -4,7 +4,7 @@ import App from './App.tsx'
 import './index.css'
 
 // Force cache refresh for favicon
-const link = document.querySelector("link[rel~='icon']");
+const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
 if (link) {
   link.href = link.href + '?v=' + new Date().getTime();
 }
