@@ -44,13 +44,6 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
         });
         navigate('/auth');
       }
-      
-      // If authenticated and on auth page, redirect to collection
-      else if (user && isAuthPage && !redirectAttempted) {
-        console.log('Layout: User authenticated on auth page, redirecting to collection');
-        setRedirectAttempted(true);
-        navigate('/collection');
-      }
     }
   }, [user, loading, isAuthPage, navigate, redirectAttempted, location.pathname]);
 

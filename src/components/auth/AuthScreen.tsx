@@ -13,11 +13,11 @@ const AuthScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   
   // Set the page title
-  usePageTitle('Sign In');
+  usePageTitle(isLogin ? 'Sign In' : 'Sign Up');
   
   useEffect(() => {
     if (user) {
-      navigate('/collection');
+      navigate('/collection', { replace: true });
     }
   }, [user, navigate]);
   

@@ -8,10 +8,6 @@ import { AuthProvider } from "./context/auth";
 import { SouvenirProvider } from "./context/souvenir";
 import usePageTitle from "./hooks/usePageTitle";
 
-// Pages
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-
 // Components
 import Layout from "./components/Layout";
 import AuthScreen from "./components/auth/AuthScreen";
@@ -22,6 +18,7 @@ import MapView from "./components/map/MapView";
 import TripFolders from "./components/trips/TripFolders";
 import TripDetail from "./components/trips/TripDetail";
 import ProfileScreen from "./components/profile/ProfileScreen";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +28,8 @@ const AppContent = () => {
   
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
+      {/* Root route now redirects to collection if authenticated, otherwise to auth */}
+      <Route path="/" element={<Navigate to="/collection" replace />} />
       <Route path="/auth" element={<AuthScreen />} />
       
       {/* Main routes */}
