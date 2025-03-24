@@ -42,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
           description: "Please sign in to access this page",
           variant: "destructive",
         });
-        navigate('/auth');
+        navigate('/auth', { replace: true });
       }
     }
   }, [user, loading, isAuthPage, navigate, redirectAttempted, location.pathname]);

@@ -19,6 +19,7 @@ import TripFolders from "./components/trips/TripFolders";
 import TripDetail from "./components/trips/TripDetail";
 import ProfileScreen from "./components/profile/ProfileScreen";
 import NotFound from "./pages/NotFound";
+import WelcomeScreen from "./components/WelcomeScreen";
 
 const queryClient = new QueryClient();
 
@@ -28,8 +29,8 @@ const AppContent = () => {
   
   return (
     <Routes>
-      {/* Root route now redirects to collection if authenticated, otherwise to auth */}
-      <Route path="/" element={<Navigate to="/collection" replace />} />
+      {/* Root route shows welcome screen that handles redirection based on auth state */}
+      <Route path="/" element={<WelcomeScreen />} />
       <Route path="/auth" element={<AuthScreen />} />
       
       {/* Main routes */}

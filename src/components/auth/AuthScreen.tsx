@@ -7,24 +7,23 @@ import SocialLoginButtons from './SocialLoginButtons';
 import usePageTitle from '@/hooks/usePageTitle';
 
 const AuthScreen: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   
   // Set the page title
   usePageTitle(isLogin ? 'Sign In' : 'Sign Up');
   
   useEffect(() => {
     if (user) {
+      console.log('AuthScreen: User is authenticated, redirecting to collection');
       navigate('/collection', { replace: true });
     }
   }, [user, navigate]);
   
   const handleToggleMode = () => {
     setIsLogin(!isLogin);
-    // Update page title based on mode
-    usePageTitle(isLogin ? 'Sign Up' : 'Sign In');
   };
   
   return (
@@ -38,8 +37,8 @@ const AuthScreen: React.FC = () => {
         <AuthForm 
           isLogin={isLogin}
           onToggleMode={handleToggleMode}
-          loading={loading}
-          setLoading={setLoading}
+          loading={formLoading}
+          setLoading={setFormLoading}
         />
 
         <div className="mt-6">
@@ -55,7 +54,7 @@ const AuthScreen: React.FC = () => {
           </div>
           
           <div className="mt-6">
-            <SocialLoginButtons loading={loading} setLoading={setLoading} />
+            <SocialLoginButtons loading={formLoading} setLoading={setFormLoading} />
           </div>
         </div>
       </div>
