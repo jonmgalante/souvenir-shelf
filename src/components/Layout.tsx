@@ -29,13 +29,13 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       pathname: location.pathname 
     });
 
-    // Handle root or index redirects with both methods to ensure it works across browsers
+    // Immediate redirect for index routes
     if (location.pathname === '/' || 
         location.pathname === '/index' || 
         location.pathname === '/index.html') {
       console.log('Layout: Root or index path detected, redirecting to collection');
-      // Hard redirect for problematic browsers
-      window.location.href = '/collection';
+      // Hard redirect for cross-browser compatibility
+      window.location.replace('/collection');
       return;
     }
 

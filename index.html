@@ -21,13 +21,14 @@
     <link rel="icon" href="/lovable-uploads/8e83c54f-0e2a-408f-ae9b-1c21cd59183b.png?v=1001" type="image/png" />
     <link rel="shortcut icon" href="/lovable-uploads/8e83c54f-0e2a-408f-ae9b-1c21cd59183b.png?v=1001" type="image/png" />
     
-    <!-- Redirect fallback for browsers that don't support SPA routing -->
+    <!-- Immediate redirect for index.html -->
     <script>
-      // Check if we're on the index page and redirect if needed
+      // Immediate redirect for direct access to index pages
       if (window.location.pathname === '/' || 
           window.location.pathname === '/index' || 
           window.location.pathname === '/index.html') {
-        window.location.href = '/collection';
+        console.log('index.html: Root or index path detected, forcing redirect to collection');
+        window.location.replace('/collection');
       }
     </script>
   </head>

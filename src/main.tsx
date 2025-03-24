@@ -3,6 +3,14 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
+// Handle direct access to index.html by redirecting immediately
+if (window.location.pathname === '/' || 
+    window.location.pathname === '/index' || 
+    window.location.pathname === '/index.html') {
+  console.log('main.tsx: Root or index path detected, redirecting to collection');
+  window.location.replace('/collection');
+}
+
 // Force cache refresh for favicon
 const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
 if (link) {

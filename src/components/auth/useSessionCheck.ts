@@ -13,21 +13,21 @@ const useSessionCheck = () => {
   useEffect(() => {
     let mounted = true;
     
+    // Handle immediate redirects from index pages
+    if (location.pathname === '/' || 
+        location.pathname === '/index' || 
+        location.pathname === '/index.html') {
+      console.log('useSessionCheck - Detected root or index path, redirecting to collection');
+      // Hard redirect for cross-browser compatibility
+      window.location.replace('/collection');
+      return;
+    }
+    
     // Handle hash fragment or query string for OAuth redirects
     const handleAuthRedirect = () => {
       // Get the current URL
       const currentUrl = window.location.href;
       console.log('useSessionCheck - Current URL:', currentUrl);
-      
-      // Handle redirects from root or index path with both methods to ensure it works
-      if (location.pathname === '/' || 
-          location.pathname === '/index' || 
-          location.pathname === '/index.html') {
-        console.log('useSessionCheck - Detected root or index path, redirecting to collection');
-        // Hard redirect for problematic browsers
-        window.location.href = '/collection';
-        return true;
-      }
       
       // Look for both hash fragment and query parameter formats
       if (
@@ -70,9 +70,8 @@ const useSessionCheck = () => {
                               location.pathname === '/index' || 
                               location.pathname === '/index.html')) {
             console.log('useSessionCheck - On auth/root/index page with session, redirecting to collection');
-            // Use both methods to ensure it works across browsers
-            window.location.href = '/collection';
-            navigate('/collection', { replace: true });
+            // Use replace for cross-browser compatibility
+            window.location.replace('/collection');
           }
           
           setCheckComplete(true);
@@ -106,9 +105,8 @@ const useSessionCheck = () => {
             title: "Signed in successfully",
             description: "Welcome back!",
           });
-          // Use both methods to ensure it works across browsers
-          window.location.href = '/collection';
-          navigate('/collection', { replace: true });
+          // Use replace for cross-browser compatibility
+          window.location.replace('/collection');
         } else if (event === 'SIGNED_OUT') {
           setHasSession(false);
           console.log('useSessionCheck - User signed out');
