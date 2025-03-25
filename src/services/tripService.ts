@@ -1,18 +1,35 @@
-
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Trip } from '../types/trip';
 import { mapDbTripToTrip } from '../utils/dataMappers';
 
 export const fetchTrips = async () => {
-  const { data, error } = await supabase
+  // First fetch all trips
+  const { data: tripsData, error: tripsError } = await supabase
     .from('trips')
     .select('*')
     .order('start_date', { ascending: false });
   
-  if (error) throw error;
+  if (tripsError) throw tripsError;
   
-  return data.map(mapDbTripToTrip);
+  // For each trip, count the associated souvenirs
+  const tripsWithCount = await Promise.all(
+    tripsData.map(async (trip) => {
+      const { count, error: countError } = await supabase
+        .from('souvenirs')
+        .select('*', { count: 'exact', head: true })
+        .eq('trip_id', trip.id);
+      
+      if (countError) {
+        console.error('Error counting souvenirs for trip:', countError);
+        return { ...trip, souvenir_count: 0 };
+      }
+      
+      return { ...trip, souvenir_count: count || 0 };
+    })
+  );
+  
+  return tripsWithCount.map(mapDbTripToTrip);
 };
 
 export const addTrip = async (userId: string, trip: Omit<Trip, 'id' | 'userId'>) => {

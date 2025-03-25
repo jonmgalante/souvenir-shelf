@@ -65,7 +65,7 @@ const TripFolders: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter className="text-sm text-muted-foreground pt-0">
-                {trip.souvenirCount || 0} souvenirs
+                {trip.souvenirCount || 0} {trip.souvenirCount === 1 ? 'souvenir' : 'souvenirs'}
               </CardFooter>
             </Card>
           ))}

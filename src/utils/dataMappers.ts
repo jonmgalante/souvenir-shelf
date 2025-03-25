@@ -1,4 +1,3 @@
-
 import { Souvenir } from '../types/souvenir';
 import { Trip } from '../types/trip';
 
@@ -30,8 +29,9 @@ export const mapDbTripToTrip = (dbTrip: any): Trip => {
     name: dbTrip.name,
     dateRange: {
       start: dbTrip.start_date,
-      end: dbTrip.end_date
+      end: dbTrip.end_date,
     },
-    coverImage: dbTrip.cover_image || ''
+    coverImage: dbTrip.cover_image || undefined,
+    souvenirCount: dbTrip.souvenir_count || 0,
   };
 };
