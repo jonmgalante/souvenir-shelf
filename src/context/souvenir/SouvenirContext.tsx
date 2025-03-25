@@ -1,220 +1,85 @@
-
-import React, { createContext, useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth';
-import { toast } from '@/components/ui/use-toast';
-import { Souvenir } from '../../types/souvenir';
-import { Trip } from '../../types/trip';
-import { mockSouvenirs, mockTrips } from '../../data/mockData';
+import React, { createContext, useState, useRef } from 'react';
+import { SouvenirProvider } from './SouvenirProvider';
+import { TripProvider } from './TripProvider';
 import { SouvenirContextType } from './types';
-import {
-  loadSouvenirs,
-  loadTrips,
-  addSouvenirAction,
-  updateSouvenirAction,
-  deleteSouvenirAction,
-  addTripAction,
-  updateTripAction,
-  deleteTripAction
-} from './souvenirActions';
 
 export const SouvenirContext = createContext<SouvenirContextType | undefined>(undefined);
 
-export const SouvenirProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  const [souvenirs, setSouvenirs] = useState<Souvenir[]>([]);
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  // Load data from Supabase when authenticated
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      
-      if (!user) {
-        // Only use mock data when in development and not authenticated
-        if (process.env.NODE_ENV === 'development') {
-          setSouvenirs(mockSouvenirs);
-          setTrips(mockTrips);
-        } else {
-          setSouvenirs([]);
-          setTrips([]);
-        }
-        setLoading(false);
-        return;
-      }
-      
-      try {
-        console.log('Fetching data for user:', user.id);
-        // Fetch souvenirs and trips
-        const [fetchedSouvenirs, fetchedTrips] = await Promise.all([
-          loadSouvenirs(user.id),
-          loadTrips(user.id)
-        ]);
-        
-        setSouvenirs(fetchedSouvenirs);
-        setTrips(fetchedTrips);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        toast({
-          title: "Failed to load data",
-          description: "Please try again later",
-          variant: "destructive",
-        });
-        
-        // Use mock data as fallback only in development
-        if (process.env.NODE_ENV === 'development') {
-          setSouvenirs(mockSouvenirs);
-          setTrips(mockTrips);
-        } else {
-          setSouvenirs([]);
-          setTrips([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [user]);
-
-  const addSouvenir = async (souvenir: Omit<Souvenir, 'id' | 'userId'>) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to add souvenirs",
-        variant: "destructive",
+export const SouvenirProviderWrapper = ({ children }: { children: React.ReactNode }) => {
+  const tripProviderRef = useRef<any>(null);
+  const souvenirProviderRef = useRef<any>(null);
+  
+  const [contextValue, setContextValue] = useState<SouvenirContextType>({
+    souvenirs: [],
+    trips: [],
+    loading: true,
+    addSouvenir: async () => {},
+    updateSouvenir: async () => {},
+    deleteSouvenir: async () => {},
+    getSouvenirById: () => undefined,
+    addTrip: async () => {},
+    updateTrip: async () => {},
+    deleteTrip: async () => {},
+  });
+  
+  const updateContextValue = (tripContext: any, souvenirContext: any) => {
+    if (tripContext && souvenirContext) {
+      setContextValue({
+        souvenirs: souvenirContext.souvenirs || [],
+        trips: tripContext.trips || [],
+        loading: souvenirContext.loading || tripContext.loading,
+        addSouvenir: souvenirContext.addSouvenir,
+        updateSouvenir: souvenirContext.updateSouvenir,
+        deleteSouvenir: souvenirContext.deleteSouvenir,
+        getSouvenirById: souvenirContext.getSouvenirById,
+        addTrip: tripContext.addTrip,
+        updateTrip: tripContext.updateTrip,
+        deleteTrip: tripContext.deleteTrip,
       });
-      return Promise.reject(new Error("Authentication required"));
-    }
-    
-    try {
-      const newSouvenir = await addSouvenirAction(user.id, souvenir);
-      // Add new souvenir to state
-      setSouvenirs(prev => [newSouvenir, ...prev]);
-    } catch (error) {
-      throw error;
     }
   };
 
-  const updateSouvenir = async (id: string, updates: Partial<Souvenir>) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to update souvenirs",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      const updatedSouvenir = await updateSouvenirAction(id, updates);
-      // Update souvenir in state
-      setSouvenirs(prev => 
-        prev.map(souvenir => 
-          souvenir.id === id ? updatedSouvenir : souvenir
-        )
-      );
-    } catch (error) {
-      throw error;
-    }
+  const captureTripProvider = (tripProviderOutput: any) => {
+    tripProviderRef.current = tripProviderOutput;
+    updateContextValue(tripProviderRef.current, souvenirProviderRef.current);
+    return null;
   };
 
-  const deleteSouvenir = async (id: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to delete souvenirs",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      await deleteSouvenirAction(id);
-      // Remove souvenir from state
-      setSouvenirs(prev => prev.filter(souvenir => souvenir.id !== id));
-    } catch (error) {
-      throw error;
-    }
+  const captureSouvenirProvider = (souvenirProviderOutput: any) => {
+    souvenirProviderRef.current = souvenirProviderOutput;
+    updateContextValue(tripProviderRef.current, souvenirProviderRef.current);
+    return null;
   };
 
-  const getSouvenirById = (id: string) => {
-    return souvenirs.find((souvenir) => souvenir.id === id);
-  };
-
-  const addTrip = async (trip: Omit<Trip, 'id' | 'userId'>) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to add trips",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      const newTrip = await addTripAction(user.id, trip);
-      // Add new trip to state
-      setTrips(prev => [newTrip, ...prev]);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const updateTrip = async (id: string, updates: Partial<Trip>) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to update trips",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      const updatedTrip = await updateTripAction(id, updates);
-      // Update trip in state
-      setTrips(prev => 
-        prev.map(trip => 
-          trip.id === id ? updatedTrip : trip
-        )
-      );
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const deleteTrip = async (id: string) => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to delete trips",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      await deleteTripAction(id);
-      // Remove trip from state
-      setTrips(prev => prev.filter(trip => trip.id !== id));
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const value = {
-    souvenirs,
-    trips,
-    loading,
-    addSouvenir,
-    updateSouvenir,
-    deleteSouvenir,
-    getSouvenirById,
-    addTrip,
-    updateTrip,
-    deleteTrip,
-  };
-
-  return <SouvenirContext.Provider value={value}>{children}</SouvenirContext.Provider>;
+  return (
+    <SouvenirContext.Provider value={contextValue}>
+      <TripProviderRender onRender={captureTripProvider}>
+        <SouvenirProviderRender tripsContext={tripProviderRef.current} onRender={captureSouvenirProvider}>
+          {children}
+        </SouvenirProviderRender>
+      </TripProviderRender>
+    </SouvenirContext.Provider>
+  );
 };
+
+const TripProviderRender = ({ children, onRender }: { children: React.ReactNode, onRender: (output: any) => void }) => {
+  const tripProvider = TripProvider({ children: null });
+  onRender(tripProvider);
+  return <>{children}</>;
+};
+
+const SouvenirProviderRender = ({ 
+  children, 
+  tripsContext, 
+  onRender 
+}: { 
+  children: React.ReactNode, 
+  tripsContext: any, 
+  onRender: (output: any) => void 
+}) => {
+  const souvenirProvider = SouvenirProvider({ children: null, tripsContext });
+  onRender(souvenirProvider);
+  return <>{children}</>;
+};
+
+export const SouvenirProvider = SouvenirProviderWrapper;
