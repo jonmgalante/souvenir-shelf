@@ -8,10 +8,12 @@ import SouvenirCard from './SouvenirCard';
 import EmptyState from './EmptyState';
 import LoadingSkeleton from './LoadingSkeleton';
 import { useFilteredSouvenirs } from './useFilteredSouvenirs';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const SouvenirGrid: React.FC = () => {
   const { souvenirs, loading } = useSouvenirs();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const {
     filteredSouvenirs,
@@ -29,7 +31,7 @@ const SouvenirGrid: React.FC = () => {
   console.log('Rendering SouvenirGrid with souvenirs:', souvenirs.length);
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="p-4 mb-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl font-medium">Your Collection</h1>
@@ -62,7 +64,7 @@ const SouvenirGrid: React.FC = () => {
       {loading ? (
         <LoadingSkeleton />
       ) : filteredSouvenirs.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'md:grid-cols-4 gap-4'}`}>
           {filteredSouvenirs.map((souvenir) => (
             <SouvenirCard
               key={souvenir.id}

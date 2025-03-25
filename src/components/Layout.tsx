@@ -6,6 +6,8 @@ import { useAuth } from '../context/auth';
 import { toast } from '@/components/ui/use-toast';
 import { Skeleton } from './ui/skeleton';
 import usePageTitle from '@/hooks/usePageTitle';
+import MobileContainer from './common/MobileContainer';
+import { Capacitor } from '@capacitor/core';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -17,6 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const isAuthPage = location.pathname === '/auth';
+  const isNative = Capacitor.isNativePlatform();
   
   // Set default page title
   usePageTitle();
@@ -26,7 +29,8 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       user: !!user, 
       loading, 
       isAuthPage,
-      pathname: location.pathname 
+      pathname: location.pathname,
+      isNative
     });
 
     // Immediate redirect for index routes
@@ -44,11 +48,16 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       // If not authenticated and not on auth page, redirect to auth
       if (!user && !isAuthPage) {
         console.log('Layout: User not authenticated, redirecting to auth page');
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to access this page",
-          variant: "destructive",
-        });
+        
+        if (!isNative) {
+          // Show toast only in browser environment
+          toast({
+            title: "Authentication required",
+            description: "Please sign in to access this page",
+            variant: "destructive",
+          });
+        }
+        
         navigate('/auth', { replace: true });
         return;
       }
@@ -65,15 +74,17 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
   // Show loading state while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-4">
-          <Skeleton className="h-12 w-3/4 mx-auto" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-32 w-full" />
+      <MobileContainer>
+        <div className="min-h-screen flex flex-col items-center justify-center p-4">
+          <div className="w-full max-w-md space-y-4">
+            <Skeleton className="h-12 w-3/4 mx-auto" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+          <p className="text-muted-foreground mt-4">Loading...</p>
         </div>
-        <p className="text-muted-foreground mt-4">Loading...</p>
-      </div>
+      </MobileContainer>
     );
   }
 
@@ -83,13 +94,15 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-1">
-        {children}
-      </main>
-      
-      {!hideNav && !isAuthPage && <Navigation />}
-    </div>
+    <MobileContainer>
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-1 pb-20">
+          {children}
+        </main>
+        
+        {!hideNav && !isAuthPage && <Navigation />}
+      </div>
+    </MobileContainer>
   );
 };
 

@@ -11,6 +11,7 @@ interface SouvenirCardProps {
 const SouvenirCard: React.FC<SouvenirCardProps> = ({ souvenir, onClick }) => {
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [isPressed, setIsPressed] = useState(false);
   
   useEffect(() => {
     // Reset error state when souvenir changes
@@ -32,7 +33,12 @@ const SouvenirCard: React.FC<SouvenirCardProps> = ({ souvenir, onClick }) => {
   return (
     <div
       onClick={onClick}
-      className="space-y-2 cursor-pointer hover:opacity-90 transition-opacity"
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      onTouchCancel={() => setIsPressed(false)}
+      className={`space-y-2 active:opacity-70 transition-opacity duration-150 ${
+        isPressed ? 'scale-95' : 'scale-100'
+      } transition-transform touch-manipulation`}
     >
       <div className="aspect-square bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
         {imageSrc && !imageError ? (
@@ -41,6 +47,7 @@ const SouvenirCard: React.FC<SouvenirCardProps> = ({ souvenir, onClick }) => {
             alt={souvenir.name}
             className="w-full h-full object-cover"
             onError={handleImageError}
+            loading="lazy"
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full w-full">
@@ -50,8 +57,8 @@ const SouvenirCard: React.FC<SouvenirCardProps> = ({ souvenir, onClick }) => {
         )}
       </div>
       <div>
-        <h3 className="font-medium text-sm">{souvenir.name}</h3>
-        <p className="text-xs text-gray-600">{souvenir.location.city}, {souvenir.location.country}</p>
+        <h3 className="font-medium text-sm leading-tight">{souvenir.name}</h3>
+        <p className="text-xs text-gray-600 truncate">{souvenir.location.city}, {souvenir.location.country}</p>
       </div>
     </div>
   );

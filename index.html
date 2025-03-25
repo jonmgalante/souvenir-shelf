@@ -3,11 +3,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>SouvieShelf - Your Travel Archive</title>
     <meta name="description" content="Archive your travel souvenirs and memories" />
     <meta name="author" content="Lovable" />
+    <meta name="theme-color" content="#FAFAF7" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="SouvieShelf" />
 
+    <!-- PWA and mobile app meta tags -->
     <meta property="og:title" content="SouvieShelf" />
     <meta property="og:description" content="Archive your travel souvenirs and memories" />
     <meta property="og:type" content="website" />
@@ -20,6 +25,30 @@
     <!-- Updated favicon -->
     <link rel="icon" href="/lovable-uploads/b102ce5a-aef1-46e5-b559-010415a75574.png" type="image/png" />
     <link rel="shortcut icon" href="/lovable-uploads/b102ce5a-aef1-46e5-b559-010415a75574.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/app-icon.svg" />
+    
+    <!-- Prevent iOS from adding phone number styling -->
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Disable iOS bounce effect -->
+    <style>
+      html {
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+      }
+      body {
+        height: 100%;
+        overflow: auto;
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+      }
+      /* Remove tap highlight on iOS */
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+    </style>
     
     <!-- Immediate redirect for index.html -->
     <script>
