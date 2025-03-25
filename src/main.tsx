@@ -8,7 +8,7 @@ const initializeCapacitor = async () => {
   if (Capacitor.isNativePlatform()) {
     try {
       const { SplashScreen } = await import('@capacitor/splash-screen')
-      const { StatusBar } = await import('@capacitor/status-bar')
+      const { StatusBar, Style } = await import('@capacitor/status-bar')
       
       // Keep splash screen visible while app initializes
       await SplashScreen.show({
@@ -16,8 +16,8 @@ const initializeCapacitor = async () => {
         autoHide: false
       })
       
-      // Set status bar style
-      await StatusBar.setStyle({ style: 'dark' })
+      // Set status bar style using the correct enum value
+      await StatusBar.setStyle({ style: Style.Dark })
       
       console.log('Capacitor initialized in native environment')
     } catch (error) {

@@ -1,5 +1,6 @@
 
 import { CapacitorConfig } from '@capacitor/cli';
+import { Style } from '@capacitor/status-bar';
 
 const config: CapacitorConfig = {
   appId: 'app.lovable.souvieshelf',
@@ -27,7 +28,7 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       backgroundColor: "#FAFAF7",
-      style: "dark",
+      style: Style.Dark,
       overlaysWebView: false
     }
   }

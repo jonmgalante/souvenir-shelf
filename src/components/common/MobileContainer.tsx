@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { StatusBar } from '@capacitor/status-bar';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 
 interface MobileContainerProps {
@@ -14,8 +14,8 @@ const MobileContainer: React.FC<MobileContainerProps> = ({ children }) => {
       // Initialize and configure native plugins
       const setupNative = async () => {
         try {
-          // Configure status bar
-          await StatusBar.setStyle({ style: 'dark' });
+          // Configure status bar using the correct enum value
+          await StatusBar.setStyle({ style: Style.Dark });
           
           // Hide splash screen with fade
           await SplashScreen.hide({
