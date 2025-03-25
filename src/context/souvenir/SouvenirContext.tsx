@@ -1,7 +1,8 @@
+
 import React, { createContext, useState, useRef } from 'react';
-import { SouvenirProvider } from './SouvenirProvider';
 import { TripProvider } from './TripProvider';
 import { SouvenirContextType } from './types';
+import { SouvenirProvider as SouvenirLogicProvider } from './SouvenirProvider';
 
 export const SouvenirContext = createContext<SouvenirContextType | undefined>(undefined);
 
@@ -54,7 +55,10 @@ export const SouvenirProviderWrapper = ({ children }: { children: React.ReactNod
   return (
     <SouvenirContext.Provider value={contextValue}>
       <TripProviderRender onRender={captureTripProvider}>
-        <SouvenirProviderRender tripsContext={tripProviderRef.current} onRender={captureSouvenirProvider}>
+        <SouvenirProviderRender 
+          trips={tripProviderRef.current?.trips} 
+          onRender={captureSouvenirProvider}
+        >
           {children}
         </SouvenirProviderRender>
       </TripProviderRender>
@@ -62,7 +66,13 @@ export const SouvenirProviderWrapper = ({ children }: { children: React.ReactNod
   );
 };
 
-const TripProviderRender = ({ children, onRender }: { children: React.ReactNode, onRender: (output: any) => void }) => {
+const TripProviderRender = ({ 
+  children, 
+  onRender 
+}: { 
+  children: React.ReactNode, 
+  onRender: (output: any) => void 
+}) => {
   const tripProvider = TripProvider({ children: null });
   onRender(tripProvider);
   return <>{children}</>;
@@ -70,16 +80,17 @@ const TripProviderRender = ({ children, onRender }: { children: React.ReactNode,
 
 const SouvenirProviderRender = ({ 
   children, 
-  tripsContext, 
+  trips, 
   onRender 
 }: { 
   children: React.ReactNode, 
-  tripsContext: any, 
+  trips: any, 
   onRender: (output: any) => void 
 }) => {
-  const souvenirProvider = SouvenirProvider({ children: null, tripsContext });
+  const souvenirProvider = SouvenirLogicProvider({ children: null, tripsContext: { trips } });
   onRender(souvenirProvider);
   return <>{children}</>;
 };
 
+// Export the wrapper as SouvenirProvider to be used by the application
 export const SouvenirProvider = SouvenirProviderWrapper;

@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { toast } from '@/components/ui/use-toast';
 import { Souvenir } from '../../types/souvenir';
@@ -12,9 +12,14 @@ import {
   deleteSouvenirAction
 } from './souvenirActions';
 
-export const SouvenirContext = createContext<SouvenirContextType | undefined>(undefined);
+type SouvenirProviderProps = {
+  children: React.ReactNode;
+  tripsContext: {
+    trips: any;
+  };
+};
 
-export const SouvenirProvider = ({ children, tripsContext }: { children: React.ReactNode, tripsContext: any }) => {
+export const SouvenirProvider = ({ children, tripsContext }: SouvenirProviderProps) => {
   const { user } = useAuth();
   const [souvenirs, setSouvenirs] = useState<Souvenir[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
