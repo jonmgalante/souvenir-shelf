@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
-import { useAuth } from '../../context/auth'; // Updated import path
+import { useAuth } from '@/context/auth';
 import { toast } from '@/components/ui/use-toast';
 
 interface AuthFormProps {
@@ -20,17 +20,19 @@ const AuthForm: React.FC<AuthFormProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
     
     try {
       if (isLogin) {
         await signIn(email, password);
+        toast({
+          title: "Sign in successful",
+          description: "Welcome back!",
+        });
       } else {
         if (!name) {
           throw new Error('Name is required');
@@ -39,7 +41,6 @@ const AuthForm: React.FC<AuthFormProps> = ({
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      setError(error.message || 'An error occurred during authentication');
       toast({
         title: "Authentication Error",
         description: error.message || 'An error occurred during authentication',
