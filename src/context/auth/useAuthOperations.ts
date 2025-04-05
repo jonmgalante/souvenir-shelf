@@ -1,12 +1,17 @@
 
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUser } from './utils';
 import { AuthUser } from './types';
-import { toast } from '@/components/ui/use-toast';
 
 // Get the current domain for OAuth redirects
 const getRedirectUrl = () => {
-  return `${window.location.origin}/collection`;
+  const isProd = window.location.hostname !== 'localhost';
+  // This ensures we use the current domain for production or the preview domain 
+  // But hardcode to production as fallback
+  return isProd 
+    ? `${window.location.origin}/collection`
+    : 'https://www.souvieshelf.com/collection';
 };
 
 export const useAuthOperations = (
@@ -16,19 +21,11 @@ export const useAuthOperations = (
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
         throw error;
       }
-      
-      // We don't need to set the user here as the onAuthStateChange will handle it
-      console.log('Sign in successful, returning data');
-      
-      return data;
     } catch (error: any) {
       console.error('Sign in error:', error);
       throw error;
@@ -40,7 +37,7 @@ export const useAuthOperations = (
   const signUp = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({ 
+      const { error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
@@ -53,15 +50,6 @@ export const useAuthOperations = (
       if (error) {
         throw error;
       }
-      
-      if (data.user) {
-        toast({
-          title: "Account created",
-          description: "Please check your email to confirm your account",
-        });
-      }
-      
-      return data;
     } catch (error: any) {
       console.error('Sign up error:', error);
       throw error;
@@ -73,7 +61,6 @@ export const useAuthOperations = (
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      // We don't need to set the user here as the onAuthStateChange will handle it
     } catch (error: any) {
       console.error('Sign out error:', error);
       throw error;
@@ -89,6 +76,10 @@ export const useAuthOperations = (
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
       

@@ -92,4 +92,5 @@ const SouvenirProviderRender = ({
   return <>{children}</>;
 };
 
+// Export the wrapper as SouvenirProvider to be used by the application
 export const SouvenirProvider = SouvenirProviderWrapper;

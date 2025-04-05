@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { toast } from '@/components/ui/use-toast';
@@ -23,11 +24,13 @@ export const SouvenirProvider = ({ children, tripsContext }: SouvenirProviderPro
   const [souvenirs, setSouvenirs] = useState<Souvenir[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Load souvenirs from Supabase when authenticated
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       
       if (!user) {
+        // Only use mock data when in development and not authenticated
         if (process.env.NODE_ENV === 'development') {
           setSouvenirs(mockSouvenirs);
         } else {
@@ -38,6 +41,7 @@ export const SouvenirProvider = ({ children, tripsContext }: SouvenirProviderPro
       }
       
       try {
+        // Fetch souvenirs
         const fetchedSouvenirs = await loadSouvenirs(user.id);
         setSouvenirs(fetchedSouvenirs);
       } catch (error) {
@@ -48,6 +52,7 @@ export const SouvenirProvider = ({ children, tripsContext }: SouvenirProviderPro
           variant: "destructive",
         });
         
+        // Use mock data as fallback only in development
         if (process.env.NODE_ENV === 'development') {
           setSouvenirs(mockSouvenirs);
         } else {
@@ -73,6 +78,7 @@ export const SouvenirProvider = ({ children, tripsContext }: SouvenirProviderPro
     
     try {
       const newSouvenir = await addSouvenirAction(user.id, souvenir);
+      // Add new souvenir to state
       setSouvenirs(prev => [newSouvenir, ...prev]);
     } catch (error) {
       throw error;
@@ -91,6 +97,7 @@ export const SouvenirProvider = ({ children, tripsContext }: SouvenirProviderPro
     
     try {
       const updatedSouvenir = await updateSouvenirAction(id, updates);
+      // Update souvenir in state
       setSouvenirs(prev => 
         prev.map(souvenir => 
           souvenir.id === id ? updatedSouvenir : souvenir
@@ -113,6 +120,7 @@ export const SouvenirProvider = ({ children, tripsContext }: SouvenirProviderPro
     
     try {
       await deleteSouvenirAction(id);
+      // Remove souvenir from state
       setSouvenirs(prev => prev.filter(souvenir => souvenir.id !== id));
     } catch (error) {
       throw error;
@@ -132,5 +140,3 @@ export const SouvenirProvider = ({ children, tripsContext }: SouvenirProviderPro
     getSouvenirById,
   };
 };
-
-export default SouvenirProvider;
