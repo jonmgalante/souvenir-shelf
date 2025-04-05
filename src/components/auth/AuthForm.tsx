@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/auth';
@@ -29,10 +28,6 @@ const AuthForm: React.FC<AuthFormProps> = ({
     try {
       if (isLogin) {
         await signIn(email, password);
-        toast({
-          title: "Sign in successful",
-          description: "Welcome back!",
-        });
       } else {
         if (!name) {
           throw new Error('Name is required');
@@ -43,7 +38,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
       console.error('Authentication error:', error);
       toast({
         title: "Authentication Error",
-        description: error.message || 'An error occurred during authentication',
+        description: error.error?.message || error.message || 'An error occurred during authentication',
         variant: "destructive",
       });
     } finally {

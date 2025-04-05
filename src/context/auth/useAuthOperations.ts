@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatUser } from './utils';
 import { AuthUser } from './types';
@@ -26,10 +25,8 @@ export const useAuthOperations = (
         throw error;
       }
       
-      if (data.user) {
-        const formattedUser = await formatUser(data.user);
-        setUser(formattedUser);
-      }
+      // We don't need to set the user here as the onAuthStateChange will handle it
+      // This prevents duplicate state updates
       
       return data;
     } catch (error: any) {
@@ -76,7 +73,8 @@ export const useAuthOperations = (
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      setUser(null);
+      // We don't need to set the user here as the onAuthStateChange will handle it
+      // This prevents duplicate state updates
     } catch (error: any) {
       console.error('Sign out error:', error);
       throw error;

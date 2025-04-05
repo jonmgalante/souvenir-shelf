@@ -16,26 +16,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
+    let authListener: { data: { subscription: { unsubscribe: () => void } } };
     
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event);
-      
-      if (mounted) {
-        if (session) {
-          console.log('Session found in auth change event');
-          const formattedUser = await formatUser(session.user);
-          setUser(formattedUser);
-        } else {
-          console.log('No session in auth change event');
-          setUser(null);
-        }
-      }
-    });
-    
-    // THEN check for existing session
-    const initSession = async () => {
+    const initAuth = async () => {
       try {
+        // First, set up the listener for future auth changes
+        authListener = supabase.auth.onAuthStateChange((event, session) => {
+          console.log('Auth state changed:', event);
+          
+          if (!mounted) return;
+          
+          if (session) {
+            console.log('Session found in auth change event');
+            // Use setTimeout to prevent potential deadlocks
+            setTimeout(async () => {
+              if (!mounted) return;
+              const formattedUser = await formatUser(session.user);
+              setUser(formattedUser);
+            }, 0);
+          } else {
+            console.log('No session in auth change event');
+            setUser(null);
+          }
+        });
+        
+        // Then check for existing session
         const { data: sessionData } = await supabase.auth.getSession();
         
         if (mounted) {
@@ -59,11 +64,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
     
-    initSession();
+    initAuth();
     
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (authListener?.data?.subscription) {
+        authListener.data.subscription.unsubscribe();
+      }
     };
   }, []);
 
