@@ -12,7 +12,7 @@ const useSessionCheck = () => {
 
   useEffect(() => {
     let mounted = true;
-    let authListener: { data: { subscription: { unsubscribe: () => void } } };
+    let authSubscription: { data: { subscription: { unsubscribe: () => void } } } | null = null;
     
     // Handle immediate redirects from index pages
     if (location.pathname === '/' || 
@@ -86,33 +86,41 @@ const useSessionCheck = () => {
       }
     };
     
-    checkSession();
-    
-    // Listen for auth state changes
-    authListener = supabase.auth.onAuthStateChange((event, session) => {
+    // Set up auth state listener first, using setTimeout to avoid potential recursion
+    authSubscription = supabase.auth.onAuthStateChange((event, session) => {
       console.log('useSessionCheck - Auth state changed:', event);
       
       if (!mounted) return;
       
-      if (event === 'SIGNED_IN' && session) {
-        setHasSession(true);
-        console.log('useSessionCheck - User signed in, redirecting to collection');
-        // Use navigate instead of window.location for smoother transitions
-        navigate('/collection', { replace: true });
-      } else if (event === 'SIGNED_OUT') {
-        setHasSession(false);
-        console.log('useSessionCheck - User signed out');
-        // Only redirect to auth if not already there
-        if (location.pathname !== '/auth') {
-          navigate('/auth', { replace: true });
+      // Use setTimeout to prevent potential deadlocks or recursion
+      setTimeout(() => {
+        if (!mounted) return;
+        
+        if (event === 'SIGNED_IN' && session) {
+          setHasSession(true);
+          console.log('useSessionCheck - User signed in, redirecting to collection');
+          
+          // Use navigate instead of window.location for smoother transitions
+          navigate('/collection', { replace: true });
+        } else if (event === 'SIGNED_OUT') {
+          setHasSession(false);
+          console.log('useSessionCheck - User signed out');
+          
+          // Only redirect to auth if not already there
+          if (location.pathname !== '/auth') {
+            navigate('/auth', { replace: true });
+          }
         }
-      }
+      }, 0);
     });
+    
+    // Then check the session
+    checkSession();
     
     return () => {
       mounted = false;
-      if (authListener?.data?.subscription) {
-        authListener.data.subscription.unsubscribe();
+      if (authSubscription?.data?.subscription) {
+        authSubscription.data.subscription.unsubscribe();
       }
     };
   }, [navigate, location.pathname]);

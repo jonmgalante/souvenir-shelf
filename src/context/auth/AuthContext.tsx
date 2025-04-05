@@ -16,28 +16,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
-    let authListener: { data: { subscription: { unsubscribe: () => void } } };
+    
+    // This will store our subscription to auth state changes
+    let authSubscription: { data: { subscription: { unsubscribe: () => void } } } | null = null;
     
     const initAuth = async () => {
       try {
         // First, set up the listener for future auth changes
-        authListener = supabase.auth.onAuthStateChange((event, session) => {
+        // CRITICAL: We need to make sure we don't trigger recursive auth state updates
+        authSubscription = supabase.auth.onAuthStateChange((event, session) => {
           console.log('Auth state changed:', event);
           
           if (!mounted) return;
           
-          if (session) {
-            console.log('Session found in auth change event');
-            // Use setTimeout to prevent potential deadlocks
-            setTimeout(async () => {
-              if (!mounted) return;
-              const formattedUser = await formatUser(session.user);
-              setUser(formattedUser);
-            }, 0);
-          } else {
-            console.log('No session in auth change event');
-            setUser(null);
-          }
+          // Use setTimeout to break potential deadlock/recursion
+          // This defers the execution until the next event loop
+          setTimeout(() => {
+            if (!mounted) return;
+            
+            if (session && session.user) {
+              console.log('Session found in auth change event');
+              // Format user data without making additional Supabase calls in the callback
+              formatUser(session.user).then(formattedUser => {
+                if (mounted) {
+                  setUser(formattedUser);
+                }
+              });
+            } else {
+              console.log('No session in auth change event');
+              setUser(null);
+            }
+          }, 0);
         });
         
         // Then check for existing session
@@ -53,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(null);
           }
           
+          // Set loading to false once we've initialized
           setLoading(false);
         }
       } catch (error) {
@@ -68,8 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     return () => {
       mounted = false;
-      if (authListener?.data?.subscription) {
-        authListener.data.subscription.unsubscribe();
+      if (authSubscription?.data?.subscription) {
+        authSubscription.data.subscription.unsubscribe();
       }
     };
   }, []);

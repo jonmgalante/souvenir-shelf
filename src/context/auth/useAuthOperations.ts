@@ -26,7 +26,7 @@ export const useAuthOperations = (
       }
       
       // We don't need to set the user here as the onAuthStateChange will handle it
-      // This prevents duplicate state updates
+      console.log('Sign in successful, returning data');
       
       return data;
     } catch (error: any) {
@@ -74,7 +74,6 @@ export const useAuthOperations = (
     try {
       await supabase.auth.signOut();
       // We don't need to set the user here as the onAuthStateChange will handle it
-      // This prevents duplicate state updates
     } catch (error: any) {
       console.error('Sign out error:', error);
       throw error;
