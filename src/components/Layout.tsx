@@ -32,36 +32,23 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       pathname: location.pathname,
       isNative
     });
-
-    // Immediate redirect for index routes
+  
     if (location.pathname === '/' || 
         location.pathname === '/index' || 
         location.pathname === '/index.html') {
       console.log('Layout: Root or index path detected, redirecting to collection');
-      // Hard redirect for cross-browser compatibility
       window.location.replace('/collection');
       return;
     }
-
-    // Only attempt redirects once authentication state is determined
+  
     if (!loading) {
-      // If not authenticated and not on auth page, redirect to auth
+      // If not authenticated and not on auth page, redirect to auth (no toast)
       if (!user && !isAuthPage) {
         console.log('Layout: User not authenticated, redirecting to auth page');
-        
-        if (!isNative) {
-          // Show toast only in browser environment
-          toast({
-            title: "Authentication required",
-            description: "Please sign in to access this page",
-            variant: "destructive",
-          });
-        }
-        
         navigate('/auth', { replace: true });
         return;
       }
-      
+  
       // If authenticated and on auth page, redirect to collection
       if (user && isAuthPage) {
         console.log('Layout: User authenticated on auth page, redirecting to collection');
