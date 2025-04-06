@@ -1,29 +1,39 @@
-
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/context/auth';
-import { toast } from '@/components/ui/use-toast';
-import { Trip } from '../../types/trip';
-import { mockTrips } from '../../data/mockData';
+// src/context/souvenir/TripProvider.tsx
+import React, { useState, useEffect, ReactNode } from "react";
+import { useAuth } from "@/context/auth";
+import { toast } from "@/components/ui/use-toast";
+import { Trip } from "../../types/trip";
+import { mockTrips } from "../../data/mockData";
 import {
   loadTrips,
   addTripAction,
   updateTripAction,
-  deleteTripAction
-} from './souvenirActions';
+  deleteTripAction,
+} from "./souvenirActions";
 
-export const TripProvider = ({ children }: { children: React.ReactNode }) => {
+type TripProviderProps = {
+  children: ReactNode;
+  onReady?: (data: {
+    trips: Trip[];
+    loading: boolean;
+    addTrip: (trip: Omit<Trip, "id" | "userId">) => Promise<void>;
+    updateTrip: (id: string, updates: Partial<Trip>) => Promise<void>;
+    deleteTrip: (id: string) => Promise<void>;
+  }) => void;
+};
+
+export const TripProvider: React.FC<TripProviderProps> = ({ children, onReady }) => {
   const { user } = useAuth();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Load trips from Supabase when authenticated
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      
+
       if (!user) {
-        // Only use mock data when in development and not authenticated
-        if (process.env.NODE_ENV === 'development') {
+        // Use mock data if dev & no user
+        if (process.env.NODE_ENV === "development") {
           setTrips(mockTrips);
         } else {
           setTrips([]);
@@ -31,21 +41,19 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
         return;
       }
-      
+
       try {
-        // Fetch trips
         const fetchedTrips = await loadTrips(user.id);
         setTrips(fetchedTrips);
       } catch (error) {
-        console.error('Error fetching trips:', error);
+        console.error("Error fetching trips:", error);
         toast({
           title: "Failed to load trips",
           description: "Please try again later",
           variant: "destructive",
         });
-        
-        // Use mock data as fallback only in development
-        if (process.env.NODE_ENV === 'development') {
+
+        if (process.env.NODE_ENV === "development") {
           setTrips(mockTrips);
         } else {
           setTrips([]);
@@ -54,11 +62,11 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [user]);
 
-  const addTrip = async (trip: Omit<Trip, 'id' | 'userId'>) => {
+  const addTrip = async (trip: Omit<Trip, "id" | "userId">) => {
     if (!user) {
       toast({
         title: "Authentication required",
@@ -67,11 +75,9 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
       });
       return;
     }
-    
     try {
       const newTrip = await addTripAction(user.id, trip);
-      // Add new trip to state
-      setTrips(prev => [newTrip, ...prev]);
+      setTrips((prev) => [newTrip, ...prev]);
     } catch (error) {
       throw error;
     }
@@ -86,14 +92,10 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
       });
       return;
     }
-    
     try {
       const updatedTrip = await updateTripAction(id, updates);
-      // Update trip in state
-      setTrips(prev => 
-        prev.map(trip => 
-          trip.id === id ? updatedTrip : trip
-        )
+      setTrips((prev) =>
+        prev.map((trip) => (trip.id === id ? updatedTrip : trip))
       );
     } catch (error) {
       throw error;
@@ -109,21 +111,28 @@ export const TripProvider = ({ children }: { children: React.ReactNode }) => {
       });
       return;
     }
-    
     try {
       await deleteTripAction(id);
-      // Remove trip from state
-      setTrips(prev => prev.filter(trip => trip.id !== id));
+      setTrips((prev) => prev.filter((trip) => trip.id !== id));
     } catch (error) {
       throw error;
     }
   };
 
-  return {
-    trips,
-    loading,
-    addTrip,
-    updateTrip,
-    deleteTrip
-  };
+  // Whenever trips/ loading changes, call onReady so a parent can merge this data
+  useEffect(() => {
+    if (onReady) {
+      onReady({
+        trips,
+        loading,
+        addTrip,
+        updateTrip,
+        deleteTrip,
+      });
+    }
+  }, [trips, loading, onReady]);
+
+  return <>{children}</>;
 };
+
+export default TripProvider;
