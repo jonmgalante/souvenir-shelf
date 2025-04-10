@@ -16,6 +16,7 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true,
       storageKey: 'souvieshelf-auth',
       storage: localStorage,
     }

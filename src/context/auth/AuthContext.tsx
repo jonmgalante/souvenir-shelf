@@ -22,47 +22,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const initAuth = async () => {
       try {
-        console.log('AuthProvider: Checking for existing session');
-        const { data: sessionData } = await supabase.auth.getSession();
-        
-        if (mounted) {
-          if (sessionData?.session) {
-            console.log('AuthProvider: Found existing session, formatting user');
-            const formattedUser = await formatUser(sessionData.session.user);
-            setUser(formattedUser);
-            console.log('AuthProvider: User state updated with session data');
-          } else {
-            console.log('AuthProvider: No session found, clearing user state');
-            setUser(null);
-          }
-          
-          setLoading(false);
-          setInitialized(true);
-          console.log('AuthProvider: Initial loading state set to false');
-        }
-        
+        // First set up auth state change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('Auth state changed:', event);
           
-          if (mounted) {
-            if (session) {
-              console.log('AuthProvider: Session available in auth change, formatting user');
+          if (!mounted) return;
+          
+          if (session) {
+            // Handle user sign-in
+            console.log('AuthProvider: Session available in auth change, formatting user');
+            // Use setTimeout to prevent deadlocks with Supabase auth
+            setTimeout(async () => {
+              if (!mounted) return;
               const formattedUser = await formatUser(session.user);
               setUser(formattedUser);
-            } else {
-              console.log('AuthProvider: No session in auth change, clearing user');
-              setUser(null);
-            }
-            
+              if (loading) {
+                setLoading(false);
+              }
+            }, 0);
+          } else {
+            // Handle user sign-out
+            console.log('AuthProvider: No session in auth change, clearing user');
+            setUser(null);
             if (loading) {
               setLoading(false);
-              console.log('AuthProvider: Auth change - loading set to false');
             }
           }
         });
         
+        // Then check for existing session
+        console.log('AuthProvider: Checking for existing session');
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (sessionData?.session) {
+          console.log('AuthProvider: Found existing session, formatting user');
+          const formattedUser = await formatUser(sessionData.session.user);
+          setUser(formattedUser);
+          console.log('AuthProvider: User state updated with session data');
+        } else {
+          console.log('AuthProvider: No session found, clearing user state');
+          setUser(null);
+        }
+        
+        setLoading(false);
+        setInitialized(true);
+        console.log('AuthProvider: Initial loading state set to false');
+        
         return () => {
-          mounted = false;
           subscription.unsubscribe();
         };
       } catch (error) {
@@ -81,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       mounted = false;
     };
-  }, [loading]);
+  }, []);
 
   const value = {
     user,

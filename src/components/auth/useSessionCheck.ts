@@ -61,29 +61,22 @@ const useSessionCheck = () => {
         
         console.log('useSessionCheck - Session check:', sessionExists ? 'Session found' : 'No session');
         
-        if (mounted) {
-          setHasSession(sessionExists);
-          
-          // Only redirect if we're on the auth page and have a session
-          if (sessionExists && (location.pathname === '/auth' || 
+        if (!mounted) return;
+        
+        setHasSession(sessionExists);
+        
+        // Only redirect if we're on the auth page and have a session
+        if (sessionExists && (location.pathname === '/auth' || 
                               location.pathname === '/' || 
                               location.pathname === '/index' || 
                               location.pathname === '/index.html')) {
-            console.log('useSessionCheck - On auth/root/index page with session, redirecting to collection');
-            // Use replace for cross-browser compatibility
-            window.location.replace('/collection');
-          }
-          
-          setCheckComplete(true);
+          console.log('useSessionCheck - On auth/root/index page with session, redirecting to collection');
+          navigate('/collection', { replace: true });
         }
+        
+        setCheckComplete(true);
       } catch (error) {
         console.error('useSessionCheck - Error checking session:', error);
-        toast({
-          title: "Session error",
-          description: "There was a problem checking your authentication status",
-          variant: "destructive",
-        });
-        
         if (mounted) {
           setHasSession(false);
           setCheckComplete(true);
@@ -97,26 +90,25 @@ const useSessionCheck = () => {
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('useSessionCheck - Auth state changed:', event);
       
-      if (mounted) {
-        if (event === 'SIGNED_IN' && session) {
-          setHasSession(true);
-          console.log('useSessionCheck - User signed in, redirecting to collection');
+      if (!mounted) return;
+      
+      if (event === 'SIGNED_IN' && session) {
+        setHasSession(true);
+        console.log('useSessionCheck - User signed in, redirecting to collection');
+        toast({
+          title: "Signed in successfully",
+          description: "Welcome back!",
+        });
+        navigate('/collection', { replace: true });
+      } else if (event === 'SIGNED_OUT') {
+        setHasSession(false);
+        console.log('useSessionCheck - User signed out');
+        if (location.pathname !== '/auth') {
           toast({
-            title: "Signed in successfully",
-            description: "Welcome back!",
+            title: "Signed out",
+            description: "You have been signed out",
           });
-          // Use replace for cross-browser compatibility
-          window.location.replace('/collection');
-        } else if (event === 'SIGNED_OUT') {
-          setHasSession(false);
-          console.log('useSessionCheck - User signed out');
-          if (location.pathname !== '/auth') {
-            toast({
-              title: "Signed out",
-              description: "You have been signed out",
-            });
-            navigate('/auth', { replace: true });
-          }
+          navigate('/auth', { replace: true });
         }
       }
     });

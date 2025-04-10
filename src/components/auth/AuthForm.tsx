@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Lock, User, ArrowRight } from 'lucide-react';
-import { useAuth } from '../../context/auth'; // Updated import path
+import { useAuth } from '../../context/auth'; 
 import { toast } from '@/components/ui/use-toast';
 
 interface AuthFormProps {
@@ -31,11 +31,19 @@ const AuthForm: React.FC<AuthFormProps> = ({
     try {
       if (isLogin) {
         await signIn(email, password);
+        toast({
+          title: "Sign in successful",
+          description: "Welcome back!",
+        });
       } else {
         if (!name) {
           throw new Error('Name is required');
         }
         await signUp(email, password, name);
+        toast({
+          title: "Sign up successful",
+          description: "Your account has been created. Check your email for verification.",
+        });
       }
     } catch (error: any) {
       console.error('Authentication error:', error);

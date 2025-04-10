@@ -6,12 +6,8 @@ import { AuthUser } from './types';
 
 // Get the current domain for OAuth redirects
 const getRedirectUrl = () => {
-  const isProd = window.location.hostname !== 'localhost';
-  // This ensures we use the current domain for production or the preview domain 
-  // But hardcode to production as fallback
-  return isProd 
-    ? `${window.location.origin}/collection`
-    : 'https://www.souvieshelf.com/collection';
+  // Use the current origin for all environments
+  return `${window.location.origin}/collection`;
 };
 
 export const useAuthOperations = (
@@ -21,11 +17,19 @@ export const useAuthOperations = (
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
         throw error;
       }
+
+      // Format and set user immediately for faster UI feedback
+      if (data.user) {
+        const formattedUser = await formatUser(data.user);
+        setUser(formattedUser);
+      }
+
+      return data;
     } catch (error: any) {
       console.error('Sign in error:', error);
       throw error;
@@ -37,7 +41,7 @@ export const useAuthOperations = (
   const signUp = async (email: string, password: string, name: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({ 
+      const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,
         options: {
@@ -50,6 +54,8 @@ export const useAuthOperations = (
       if (error) {
         throw error;
       }
+
+      return data;
     } catch (error: any) {
       console.error('Sign up error:', error);
       throw error;
@@ -60,7 +66,11 @@ export const useAuthOperations = (
 
   const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      setUser(null);
     } catch (error: any) {
       console.error('Sign out error:', error);
       throw error;
@@ -72,7 +82,7 @@ export const useAuthOperations = (
       const redirectUrl = getRedirectUrl();
       console.log('Google sign-in redirect URL:', redirectUrl);
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
@@ -86,6 +96,8 @@ export const useAuthOperations = (
       if (error) {
         throw error;
       }
+
+      return data;
     } catch (error: any) {
       console.error('Google sign in error:', error);
       throw error;
