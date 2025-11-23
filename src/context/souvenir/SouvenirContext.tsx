@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useRef } from 'react';
+import React, { createContext, useMemo } from 'react';
 import { TripProvider } from './TripProvider';
 import { SouvenirContextType } from './types';
 import { SouvenirProvider as SouvenirLogicProvider } from './SouvenirProvider';
@@ -7,89 +7,33 @@ import { SouvenirProvider as SouvenirLogicProvider } from './SouvenirProvider';
 export const SouvenirContext = createContext<SouvenirContextType | undefined>(undefined);
 
 export const SouvenirProviderWrapper = ({ children }: { children: React.ReactNode }) => {
-  const tripProviderRef = useRef<any>(null);
-  const souvenirProviderRef = useRef<any>(null);
-  
-  const [contextValue, setContextValue] = useState<SouvenirContextType>({
-    souvenirs: [],
-    trips: [],
-    loading: true,
-    addSouvenir: async () => {},
-    updateSouvenir: async () => {},
-    deleteSouvenir: async () => {},
-    getSouvenirById: () => undefined,
-    addTrip: async () => {},
-    updateTrip: async () => {},
-    deleteTrip: async () => {},
-  });
-  
-  const updateContextValue = (tripContext: any, souvenirContext: any) => {
-    if (tripContext && souvenirContext) {
-      setContextValue({
-        souvenirs: souvenirContext.souvenirs || [],
-        trips: tripContext.trips || [],
-        loading: souvenirContext.loading || tripContext.loading,
-        addSouvenir: souvenirContext.addSouvenir,
-        updateSouvenir: souvenirContext.updateSouvenir,
-        deleteSouvenir: souvenirContext.deleteSouvenir,
-        getSouvenirById: souvenirContext.getSouvenirById,
-        addTrip: tripContext.addTrip,
-        updateTrip: tripContext.updateTrip,
-        deleteTrip: tripContext.deleteTrip,
-      });
-    }
-  };
+  // Execute the underlying providers as hooks and compose their outputs.
+  // These provider functions already use React state/effects and return plain objects,
+  // so we can call them directly and derive a single context value.
+  const tripContext = TripProvider({ children: null });
+  const souvenirContext = SouvenirLogicProvider({ children: null, tripsContext: { trips: tripContext?.trips } });
 
-  const captureTripProvider = (tripProviderOutput: any) => {
-    tripProviderRef.current = tripProviderOutput;
-    updateContextValue(tripProviderRef.current, souvenirProviderRef.current);
-    return null;
-  };
+  const noopAsync = async () => {};
+  const noopGetById = () => undefined;
 
-  const captureSouvenirProvider = (souvenirProviderOutput: any) => {
-    souvenirProviderRef.current = souvenirProviderOutput;
-    updateContextValue(tripProviderRef.current, souvenirProviderRef.current);
-    return null;
-  };
+  const contextValue = useMemo<SouvenirContextType>(() => ({
+    souvenirs: souvenirContext?.souvenirs || [],
+    trips: tripContext?.trips || [],
+    loading: Boolean(souvenirContext?.loading || tripContext?.loading),
+    addSouvenir: souvenirContext?.addSouvenir || noopAsync,
+    updateSouvenir: souvenirContext?.updateSouvenir || noopAsync,
+    deleteSouvenir: souvenirContext?.deleteSouvenir || noopAsync,
+    getSouvenirById: souvenirContext?.getSouvenirById || noopGetById,
+    addTrip: tripContext?.addTrip || noopAsync,
+    updateTrip: tripContext?.updateTrip || noopAsync,
+    deleteTrip: tripContext?.deleteTrip || noopAsync,
+  }), [souvenirContext, tripContext]);
 
   return (
     <SouvenirContext.Provider value={contextValue}>
-      <TripProviderRender onRender={captureTripProvider}>
-        <SouvenirProviderRender 
-          trips={tripProviderRef.current?.trips} 
-          onRender={captureSouvenirProvider}
-        >
-          {children}
-        </SouvenirProviderRender>
-      </TripProviderRender>
+      {children}
     </SouvenirContext.Provider>
   );
-};
-
-const TripProviderRender = ({ 
-  children, 
-  onRender 
-}: { 
-  children: React.ReactNode, 
-  onRender: (output: any) => void 
-}) => {
-  const tripProvider = TripProvider({ children: null });
-  onRender(tripProvider);
-  return <>{children}</>;
-};
-
-const SouvenirProviderRender = ({ 
-  children, 
-  trips, 
-  onRender 
-}: { 
-  children: React.ReactNode, 
-  trips: any, 
-  onRender: (output: any) => void 
-}) => {
-  const souvenirProvider = SouvenirLogicProvider({ children: null, tripsContext: { trips } });
-  onRender(souvenirProvider);
-  return <>{children}</>;
 };
 
 // Export the wrapper as SouvenirProvider to be used by the application
