@@ -33,15 +33,7 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       isNative
     });
 
-    // Immediate redirect for index routes
-    if (location.pathname === '/' || 
-        location.pathname === '/index' || 
-        location.pathname === '/index.html') {
-      console.log('Layout: Root or index path detected, redirecting to collection');
-      // Hard redirect for cross-browser compatibility
-      window.location.replace('/collection');
-      return;
-    }
+    
 
     // Only attempt redirects once authentication state is determined
     if (!loading) {

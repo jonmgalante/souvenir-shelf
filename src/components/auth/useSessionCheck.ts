@@ -13,15 +13,6 @@ const useSessionCheck = () => {
   useEffect(() => {
     let mounted = true;
     
-    // Handle immediate redirects from index pages
-    if (location.pathname === '/' || 
-        location.pathname === '/index' || 
-        location.pathname === '/index.html') {
-      console.log('useSessionCheck - Detected root or index path, redirecting to collection');
-      // Hard redirect for cross-browser compatibility
-      window.location.replace('/collection');
-      return;
-    }
     
     // Handle hash fragment or query string for OAuth redirects
     const handleAuthRedirect = () => {

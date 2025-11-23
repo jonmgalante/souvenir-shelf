@@ -50,16 +50,7 @@
       }
     </style>
     
-    <!-- Immediate redirect for index.html -->
-    <script>
-      // Immediate redirect for direct access to index pages
-      if (window.location.pathname === '/' || 
-          window.location.pathname === '/index' || 
-          window.location.pathname === '/index.html') {
-        console.log('index.html: Root or index path detected, forcing redirect to collection');
-        window.location.replace('/collection');
-      }
-    </script>
+    
   </head>
 
   <body>
