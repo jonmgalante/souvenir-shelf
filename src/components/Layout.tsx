@@ -41,14 +41,6 @@ const Layout: React.FC<LayoutProps> = ({ children, hideNav = false }) => {
       if (!user && !isAuthPage) {
         console.log('Layout: User not authenticated, redirecting to auth page');
         
-        if (!isNative) {
-          // Show toast only in browser environment
-          toast({
-            title: "Authentication required",
-            description: "Please sign in to access this page",
-            variant: "destructive",
-          });
-        }
         
         navigate('/auth', { replace: true });
         return;
