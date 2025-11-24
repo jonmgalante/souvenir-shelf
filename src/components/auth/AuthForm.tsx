@@ -31,10 +31,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
     try {
       if (isLogin) {
         await signIn(email, password);
-        toast({
-          title: "Sign in successful",
-          description: "Welcome back!",
-        });
+        
       } else {
         if (!name) {
           throw new Error('Name is required');
@@ -42,7 +39,7 @@ const AuthForm: React.FC<AuthFormProps> = ({
         await signUp(email, password, name);
         toast({
           title: "Sign up successful",
-          description: "Your account has been created. Check your email for verification.",
+          description: "Your account has been created. Welcome to SouvieShelf!",
         });
       }
     } catch (error: any) {
