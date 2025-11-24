@@ -92,10 +92,7 @@ const useSessionCheck = () => {
         setHasSession(false);
         console.log('useSessionCheck - User signed out');
         if (location.pathname !== '/auth') {
-          toast({
-            title: "Signed out",
-            description: "You have been signed out",
-          });
+          
           navigate('/auth', { replace: true });
         }
       }

@@ -30,10 +30,7 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({
     try {
       await signOut();
       navigate('/auth');
-      toast({
-        title: "Signed out",
-        description: "You have been successfully signed out.",
-      });
+      
     } catch (error) {
       console.error('Error signing out:', error);
       toast({
