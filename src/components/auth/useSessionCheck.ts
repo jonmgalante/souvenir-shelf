@@ -86,10 +86,7 @@ const useSessionCheck = () => {
       if (event === 'SIGNED_IN' && session) {
         setHasSession(true);
         console.log('useSessionCheck - User signed in, redirecting to collection');
-        toast({
-          title: "Signed in successfully",
-          description: "Welcome back!",
-        });
+        
         navigate('/collection', { replace: true });
       } else if (event === 'SIGNED_OUT') {
         setHasSession(false);
