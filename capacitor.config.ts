@@ -3,13 +3,14 @@ import { CapacitorConfig } from '@capacitor/cli';
 import { Style } from '@capacitor/status-bar';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.souvieshelf',
+  appId: 'com.souvieshelf.app',
   appName: 'SouvieShelf',
   webDir: 'dist',
   bundledWebRuntime: false,
   server: {
-    url: 'https://souvieshelf.lovable.app?forceHideBadge=true',
-    cleartext: true
+    // No remote URL in production – load bundled web assets from /dist
+    // This line is only really needed for Android but harmless here:
+  androidScheme: 'https',
   },
   ios: {
     contentInset: 'always',
