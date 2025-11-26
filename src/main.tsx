@@ -5,26 +5,23 @@ import { Capacitor } from '@capacitor/core'
 
 // Initialize capacitor plugins when in a native environment
 const initializeCapacitor = async () => {
-  if (Capacitor.isNativePlatform()) {
-    try {
-      const { SplashScreen } = await import('@capacitor/splash-screen')
-      const { StatusBar, Style } = await import('@capacitor/status-bar')
-      
-      // Keep splash screen visible while app initializes
-      await SplashScreen.show({
-        showDuration: 2000,
-        autoHide: false
-      })
-      
-      // Set status bar style using the correct enum value
-      await StatusBar.setStyle({ style: Style.Dark })
-      
-      console.log('Capacitor initialized in native environment')
-    } catch (error) {
-      console.error('Error initializing Capacitor:', error)
-    }
+  if (!Capacitor.isNativePlatform()) return;
+
+  try {
+    const { SplashScreen } = await import('@capacitor/splash-screen');
+    const { StatusBar, Style } = await import('@capacitor/status-bar');
+
+    // Make sure any splash that might be showing is hidden
+    await SplashScreen.hide();
+
+    // Set status bar style using the correct enum value
+    await StatusBar.setStyle({ style: Style.Dark });
+
+    console.log('Capacitor initialized in native environment');
+  } catch (error) {
+    console.error('Error initializing Capacitor:', error);
   }
-}
+};
 
 
 // Force cache refresh for favicon
