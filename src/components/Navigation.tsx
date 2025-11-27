@@ -20,7 +20,6 @@ const Navigation: React.FC = () => {
           icon={<PlusCircle className="nav-icon" />} 
           label="Add" 
           addClass="text-primary relative"
-          centerButton={isMobile}
         />
         <NavItem to="/trips" icon={<FolderPlus className="nav-icon" />} label="Trips" />
         

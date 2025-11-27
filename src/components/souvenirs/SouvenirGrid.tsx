@@ -31,7 +31,11 @@ const SouvenirGrid: React.FC = () => {
   console.log('Rendering SouvenirGrid with souvenirs:', souvenirs.length);
 
   return (
-    <div className="p-4 mb-6 max-w-7xl mx-auto">
+    <div
+    className={`mb-6 max-w-7xl mx-auto px-4 pb-4 ${
+      isMobile ? 'pt-2' : 'pt-4'
+    }`}
+  >
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl font-medium">Your Collection</h1>
