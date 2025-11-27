@@ -19,7 +19,6 @@ const Navigation: React.FC = () => {
           to="/add" 
           icon={<PlusCircle className="nav-icon" />} 
           label="Add" 
-          addClass="text-primary relative"
         />
         <NavItem to="/trips" icon={<FolderPlus className="nav-icon" />} label="Trips" />
         
@@ -57,7 +56,7 @@ const NavItem: React.FC<NavItemProps> = ({
   addClass = "", 
   centerButton = false 
 }) => {
-  if (centerButton && to === '/add') {
+  if (false && centerButton && to === '/add') {
     return (
       <NavLink 
         to={to} 
