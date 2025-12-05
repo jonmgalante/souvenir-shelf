@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useSouvenirs } from '../../context/souvenir';
 import { Location } from '../../types/souvenir';
-import { Map, Calendar, ChevronDown, Save, MapPin } from 'lucide-react';
+import { Map, Calendar, ChevronDown, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 // Custom Hook
@@ -387,7 +387,6 @@ const AddSouvenir: React.FC = () => {
             className="w-full py-6 text-lg flex items-center justify-center gap-2"
             disabled={submitting}
           >
-            <Save size={20} />
             {submitting ? 'Adding...' : 'Add to Collection'}
           </Button>
         </div>
