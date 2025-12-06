@@ -20,20 +20,17 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div>
         <h2 className="text-lg font-medium">Photos</h2>
-        <label className="flex items-center gap-1 text-sm font-medium cursor-pointer text-primary">
-          <Camera className="h-4 w-4" />
-          <span>Add Photo</span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/*"
-            multiple
-            onChange={handleImageChange}
-          />
-        </label>
+        {/* Hidden input used by both the empty-state box and the "add another" tile */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          accept="image/*"
+          multiple
+          onChange={handleImageChange}
+        />
       </div>
 
       {imageUrls.length > 0 ? (
@@ -57,6 +54,16 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               </button>
             </div>
           ))}
+
+          {/* Add-another-photo tile (only shown when there are existing photos) */}
+          <button
+            type="button"
+            onClick={openFilePicker}
+            className="flex flex-col items-center justify-center aspect-square rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 text-gray-400"
+          >
+            <Camera className="h-6 w-6 mb-1" />
+            <span className="text-xs">Add another photo</span>
+          </button>
         </div>
       ) : (
         <div
