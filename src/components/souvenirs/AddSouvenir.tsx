@@ -42,7 +42,7 @@ const AddSouvenir: React.FC = () => {
     latitude: 0,
     longitude: 0
   });
-  const [date, setDate] = useState<Date | null>(null);
+  const [date, setDate] = useState<Date | null>(new Date());
   const [notes, setNotes] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
@@ -239,14 +239,6 @@ const AddSouvenir: React.FC = () => {
       return;
     }
     
-    if (!date) {
-      toast({
-        title: "Error",
-        description: "Please set the date when you acquired this souvenir",
-        variant: "destructive",
-      });
-      return;
-    }
     
     try {
       setSubmitting(true);
@@ -268,7 +260,7 @@ const AddSouvenir: React.FC = () => {
       await addSouvenir({
         name,
         location: locationWithCoords,
-        dateAcquired: date.toISOString(),
+        dateAcquired: date ? date.toISOString() : null,
         categories: selectedCategories.length > 0 ? selectedCategories : ['Other'],
         notes,
         images,

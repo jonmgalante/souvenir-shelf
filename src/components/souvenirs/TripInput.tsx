@@ -21,7 +21,7 @@ const TripInput: React.FC<TripInputProps> = ({
 
   return (
     <div className="space-y-2">
-      <h2 className="text-lg font-medium">Trip (optional)</h2>
+      <h2 className="text-lg font-medium">Trip</h2>
 
       <select
         value={selectedTripId || ''}

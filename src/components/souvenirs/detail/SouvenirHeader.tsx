@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share2, Edit, Trash2, MapPin, Calendar, Briefcase, Tag } from 'lucide-react';
@@ -9,7 +8,7 @@ import { Location } from '../../../types/souvenir';
 interface SouvenirHeaderProps {
   name: string;
   location: Location;
-  dateAcquired: string;
+  dateAcquired: string | null;
   categories: string[];
   associatedTrip: Trip | null;
   onEditClick: () => void;
@@ -26,7 +25,10 @@ const SouvenirHeader: React.FC<SouvenirHeaderProps> = ({
   onDeleteClick
 }) => {
   const navigate = useNavigate();
-  const formattedDate = format(new Date(dateAcquired), 'MMMM d, yyyy');
+
+  const formattedDate = dateAcquired
+    ? format(new Date(dateAcquired), 'MMMM d, yyyy')
+    : 'Date unknown';
   
   return (
     <>
