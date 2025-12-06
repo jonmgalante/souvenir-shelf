@@ -115,6 +115,106 @@ const AddSouvenir: React.FC = () => {
     }
   };
 
+  // Reverse geocode for "Use Current Location" inside modal
+  const reverseGeocodeLocation = async (latitude: number, longitude: number) => {
+    try {
+      const mapboxToken = 'pk.eyJ1Ijoiam9ubWdhbGFudGUiLCJhIjoiY204a3ltMHh1MHhwczJxcG8yZXRqaDgxZiJ9.mN_EYyrVSLoOB5Pojc_FWQ';
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${mapboxToken}`
+      );
+      if (!response.ok) throw new Error('Reverse geocoding request failed');
+
+      const data = await response.json();
+      if (!data.features || data.features.length === 0) {
+        throw new Error('Location not found');
+      }
+
+      const feature = data.features[0];
+      let city = '';
+      let country = '';
+
+      if (feature.context && Array.isArray(feature.context)) {
+        for (const ctx of feature.context) {
+          if (
+            typeof ctx.id === 'string' &&
+            (ctx.id.startsWith('place') ||
+              ctx.id.startsWith('locality') ||
+              ctx.id.startsWith('region'))
+          ) {
+            if (!city) city = ctx.text;
+          }
+          if (typeof ctx.id === 'string' && ctx.id.startsWith('country')) {
+            country = ctx.text;
+          }
+        }
+      }
+
+      if (!city && feature.place_type?.includes('place')) {
+        city = feature.text;
+      }
+
+      return {
+        address: feature.place_name || '',
+        city,
+        country,
+        latitude,
+        longitude,
+      } as Location;
+    } catch (error) {
+      console.error('Error reverse geocoding location:', error);
+      return null;
+    }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast({
+        title: 'Location unavailable',
+        description: 'Your device does not support location services.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const resolved = await reverseGeocodeLocation(latitude, longitude);
+          if (resolved) {
+            setLocation(prev => ({
+              ...prev,
+              ...resolved,
+            }));
+          } else {
+            // Fallback: set coordinates only
+            setLocation(prev => ({
+              ...prev,
+              latitude,
+              longitude,
+            }));
+          }
+        } catch (error) {
+          console.error('Error getting current location:', error);
+          toast({
+            title: 'Unable to get current location',
+            description: 'Please check location permissions in your device settings.',
+            variant: 'destructive',
+          });
+        }
+      },
+      (error) => {
+        console.error('Error getting current location:', error);
+        toast({
+          title: 'Unable to get current location',
+          description: 'Please check location permissions in your device settings.',
+          variant: 'destructive',
+        });
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -202,8 +302,17 @@ const AddSouvenir: React.FC = () => {
     return (
       <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-auto">
-          <div className="p-4 border-b">
+          <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-lg font-medium">Set Location</h2>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleUseCurrentLocation}
+            >
+              <MapPin className="h-4 w-4 mr-1" />
+              Use Current Location
+            </Button>
           </div>
           
           <div className="p-4">
