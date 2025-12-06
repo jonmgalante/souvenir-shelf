@@ -51,7 +51,7 @@ const MapView: React.FC = () => {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
         projection: 'globe',
-        zoom: 1.3,         // Slightly lower zoom level to see more of the globe
+        zoom: 0.9,         // Slightly lower zoom level to see more of the globe
         center: [0, 0],    // Center the globe in the viewport
         pitch: 0,          // Reduced pitch to zero for a centered view
         attributionControl: false

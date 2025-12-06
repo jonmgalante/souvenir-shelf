@@ -251,7 +251,7 @@ const TripDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="souvenir-container animate-fade-in">
+      <div className="souvenir-container animate-fade-in max-w-5xl mx-auto px-4">
         <div className="flex items-center space-x-4 mb-6">
           <button
             onClick={() => navigate('/trips')}
@@ -268,7 +268,7 @@ const TripDetail: React.FC = () => {
 
   if (!trip) {
     return (
-      <div className="souvenir-container animate-fade-in">
+      <div className="souvenir-container animate-fade-in max-w-5xl mx-auto px-4">
         <div className="flex items-center space-x-4 mb-6">
           <button
             onClick={() => navigate('/trips')}
@@ -358,7 +358,7 @@ const TripDetail: React.FC = () => {
     : {};
 
   return (
-    <div className="souvenir-container animate-fade-in pb-24">
+    <div className="souvenir-container animate-fade-in pb-24 max-w-5xl mx-auto px-4">
       <div className="flex items-center space-x-4 mb-6">
         <button
           onClick={() => navigate('/trips')}
@@ -457,12 +457,12 @@ const TripDetail: React.FC = () => {
                   {locationLabel}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {souvenirs.map((souvenir) => (
-                    <SouvenirCard
-                      key={souvenir.id}
-                      souvenir={souvenir}
-                      onClick={() => navigate(`/souvenir/${souvenir.id}`)}
-                    />
+        {souvenirs.map((souvenir) => (
+          <SouvenirCard
+            key={souvenir.id}
+            souvenir={souvenir}
+            onClick={() => navigate(`/souvenir/${souvenir.id}`)}
+          />
                   ))}
                 </div>
               </div>
