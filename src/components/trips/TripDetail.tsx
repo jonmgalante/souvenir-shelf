@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSouvenirs, Trip, Souvenir } from '../../context/souvenir';
@@ -264,6 +263,46 @@ const TripDetail: React.FC = () => {
   const startDate = new Date(trip.dateRange.start);
   const endDate = new Date(trip.dateRange.end);
   const formattedDateRange = `${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d, yyyy')}`;
+
+  // Derived counts & grouping
+  const tripSouvenirCount = tripSouvenirs.length;
+
+  const locationKeys = Array.from(
+    new Set(
+      tripSouvenirs.map((s) => {
+        const city = s.location.city?.trim();
+        const country = s.location.country?.trim();
+        if (city && country) return `${city}, ${country}`;
+        if (city) return city;
+        if (country) return country;
+        return 'Unknown location';
+      })
+    )
+  );
+
+  const locationCount = locationKeys.length;
+
+  let locationSummary = '';
+  if (locationCount === 1) {
+    locationSummary = locationKeys[0];
+  } else if (locationCount === 2) {
+    locationSummary = `${locationKeys[0]} & ${locationKeys[1]}`;
+  } else if (locationCount > 2) {
+    locationSummary = `${locationKeys[0]}, ${locationKeys[1]} + ${locationCount - 2} more`;
+  }
+
+  const souvenirsByLocation = tripSouvenirs.reduce((acc, s) => {
+    const city = s.location.city?.trim();
+    const country = s.location.country?.trim();
+    let key = '';
+    if (city && country) key = `${city}, ${country}`;
+    else if (city) key = city;
+    else if (country) key = country;
+    else key = 'Unknown location';
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(s);
+    return acc;
+  }, {} as Record<string, Souvenir[]>);
   
   const handleCoverImageError = () => {
     console.error("Failed to load trip cover image:", trip.coverImage);
@@ -313,9 +352,21 @@ const TripDetail: React.FC = () => {
         )}
         
         <div className="absolute inset-0 bg-gradient-to-t from-souvenir-500/80 via-souvenir-500/20 to-transparent flex flex-col justify-end p-6 text-white">
-          <div className="flex items-center space-x-2 text-sm">
-            <Calendar className="h-4 w-4" />
-            <span>{formattedDateRange}</span>
+          <div className="space-y-1 text-sm">
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4" />
+              <span>{formattedDateRange}</span>
+            </div>
+            {locationSummary && (
+              <div className="flex items-center space-x-2 text-xs text-white/90">
+                <Map className="h-3.5 w-3.5" />
+                <span>{locationSummary}</span>
+              </div>
+            )}
+            <p className="text-xs text-white/80">
+              {tripSouvenirCount}{' '}
+              {tripSouvenirCount === 1 ? 'souvenir' : 'souvenirs'}
+            </p>
           </div>
         </div>
         
@@ -348,16 +399,40 @@ const TripDetail: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {tripSouvenirCount > 0 && (
+        <p className="mb-4 text-sm text-muted-foreground">
+          {tripSouvenirCount}{' '}
+          {tripSouvenirCount === 1 ? 'souvenir' : 'souvenirs'}
+          {locationCount > 0 && (
+            <>
+              {' '}
+              • {locationCount} location{locationCount === 1 ? '' : 's'}
+            </>
+          )}
+        </p>
+      )}
       
       {tripSouvenirs.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tripSouvenirs.map(souvenir => (
-            <SouvenirCard 
-              key={souvenir.id} 
-              souvenir={souvenir} 
-              onClick={() => navigate(`/souvenir/${souvenir.id}`)} 
-            />
-          ))}
+        <div className="space-y-6">
+          {Object.entries(souvenirsByLocation).map(
+            ([locationLabel, souvenirs]) => (
+              <div key={locationLabel}>
+                <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
+                  {locationLabel}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {souvenirs.map((souvenir) => (
+                    <SouvenirCard
+                      key={souvenir.id}
+                      souvenir={souvenir}
+                      onClick={() => navigate(`/souvenir/${souvenir.id}`)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )
+          )}
         </div>
       ) : (
         <div className="bg-muted/30 rounded-lg p-8 text-center">
