@@ -56,35 +56,32 @@ const TripFolders: React.FC = () => {
             return (
               <Card
                 key={trip.id}
-                className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                className="overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => navigate(`/trip/${trip.id}`)}
               >
                 {/* Hero image with overlay text if there's a cover image */}
                 {trip.coverImage ? (
-                  <div className="relative h-40 overflow-hidden">
-                    <img
-                      src={trip.coverImage}
-                      alt={trip.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                    
-                    {/* Text overlay */}
-                    <div className="absolute inset-x-0 bottom-0 p-3 text-white">
-                      <h2 className="text-base font-semibold leading-snug">
-                        {trip.name}
-                      </h2>
-                      <div className="mt-1 flex items-center text-xs text-white/90">
-                        <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                        <span>
-                          {formatDateRange(trip.dateRange.start, trip.dateRange.end)}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-white/80">
-                        {souvenirCount} {souvenirLabel}
-                      </p>
-                    </div>
+                  <div className="relative aspect-[4/3] overflow-hidden">
+    <img
+      src={trip.coverImage}
+      alt={trip.name}
+      className="w-full h-full object-cover brightness-110"
+    />
+    {/* Text overlay with bottom gradient */}
+    <div className="absolute inset-x-0 bottom-0 p-3 text-white bg-gradient-to-t from-black/40 via-black/20 to-transparent">
+  <h2 className="text-base font-semibold leading-snug">
+    {trip.name}
+  </h2>
+  <div className="mt-1 flex items-center text-xs text-white/90">
+    <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+    <span>
+      {formatDateRange(trip.dateRange.start, trip.dateRange.end)}
+    </span>
+  </div>
+  <p className="mt-1 text-xs text-white/80">
+    {souvenirCount} {souvenirLabel}
+  </p>
+</div>
                   </div>
                 ) : (
                   /* Fallback layout when there is no cover image */
