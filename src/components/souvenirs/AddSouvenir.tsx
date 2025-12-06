@@ -4,6 +4,7 @@ import { useSouvenirs } from '../../context/souvenir';
 import { Location } from '../../types/souvenir';
 import { Map, Calendar, ChevronDown, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
+import TripInput from './TripInput';
 
 // Custom Hook
 import { useImageUpload } from '../../hooks/useImageUpload';
@@ -21,11 +22,13 @@ import { Input } from '../ui/input';
 const AddSouvenir: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addSouvenir, loading } = useSouvenirs();
+  const { addSouvenir, trips, loading } = useSouvenirs();
   
   // Parse URL search params to get tripId if present
   const searchParams = new URLSearchParams(location.search);
-  const tripId = searchParams.get('tripId');
+  const tripIdFromUrl = searchParams.get('tripId');
+
+  const [selectedTripId, setSelectedTripId] = useState<string | null>(tripIdFromUrl);
   
   // Use custom hook for image handling
   const { imageUrls, imageFiles, images, handleImageChange, removeImage } = useImageUpload();
@@ -269,7 +272,7 @@ const AddSouvenir: React.FC = () => {
         categories: selectedCategories.length > 0 ? selectedCategories : ['Other'],
         notes,
         images,
-        tripId: tripId || undefined
+        tripId: selectedTripId || undefined
       });
       
       toast({
@@ -278,12 +281,12 @@ const AddSouvenir: React.FC = () => {
       });
       
       // If we have a tripId, redirect back to that trip details page
-      if (tripId) {
-        navigate(`/trip/${tripId}`);
+      if (selectedTripId) {
+        navigate(`/trip/${selectedTripId}`);
       } else {
-        // Otherwise, redirect to the main collection
         navigate('/collection');
       }
+      
     } catch (error: any) {
       console.error('Error adding souvenir:', error);
       toast({
@@ -427,11 +430,11 @@ const AddSouvenir: React.FC = () => {
     <div className="max-w-md mx-auto p-4 pb-24">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-medium">
-          {tripId ? 'Add Trip Souvenir' : 'Add Souvenir'}
+          {tripIdFromUrl ? 'Add Trip Souvenir' : 'Add Souvenir'}
         </h1>
         <button
           type="button"
-          onClick={() => tripId ? navigate(`/trip/${tripId}`) : navigate(-1)}
+          onClick={() => tripIdFromUrl ? navigate(`/trip/${tripIdFromUrl}`) : navigate(-1)}
           className="text-sm text-muted-foreground"
         >
           Cancel
@@ -464,6 +467,12 @@ const AddSouvenir: React.FC = () => {
           setLocation={setLocation}
           showLocationModal={showLocationModal}
           setShowLocationModal={setShowLocationModal}
+        />
+
+        <TripInput
+         trips={trips}
+         selectedTripId={selectedTripId}
+         onChange={setSelectedTripId}
         />
         
         <DateSelection 
