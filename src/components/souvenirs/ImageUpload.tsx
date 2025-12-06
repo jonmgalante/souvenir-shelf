@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useRef } from 'react';
 import { Camera, X } from 'lucide-react';
 
 interface ImageUploadProps {
@@ -8,11 +7,17 @@ interface ImageUploadProps {
   removeImage: (index: number) => void;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ 
-  imageUrls, 
-  handleImageChange, 
-  removeImage 
+const ImageUpload: React.FC<ImageUploadProps> = ({
+  imageUrls,
+  handleImageChange,
+  removeImage,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -21,6 +26,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <Camera className="h-4 w-4" />
           <span>Add Photo</span>
           <input
+            ref={fileInputRef}
             type="file"
             className="hidden"
             accept="image/*"
@@ -29,11 +35,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           />
         </label>
       </div>
-      
+
       {imageUrls.length > 0 ? (
         <div className="grid grid-cols-3 gap-2">
           {imageUrls.map((url, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+            <div
+              key={index}
+              className="relative aspect-square rounded-lg overflow-hidden bg-gray-100"
+            >
               <img
                 src={url}
                 alt={`Souvenir ${index + 1}`}
@@ -50,7 +59,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           ))}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-lg">
+        <div
+          className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer"
+          onClick={openFilePicker}
+        >
           <Camera className="h-8 w-8 text-gray-400 mb-2" />
           <p className="text-sm text-gray-500">Add photos of your souvenir</p>
         </div>
