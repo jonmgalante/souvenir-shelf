@@ -30,9 +30,6 @@ const LocationInput: React.FC<LocationInputProps> = ({
               {location.address}
             </span>
           )}
-          <span className="text-xs text-gray-400 mt-1">
-            Coordinates: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-          </span>
         </div>
       ) : (
         // Empty state: dashed box used to open the modal and set location
