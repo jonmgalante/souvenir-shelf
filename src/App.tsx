@@ -21,6 +21,7 @@ import TripDetail from "./components/trips/TripDetail";
 import ProfileScreen from "./components/profile/ProfileScreen";
 import NotFound from "./pages/NotFound";
 import OfflineIndicator from "./components/common/OfflineIndicator";
+import AddTrip from "./components/trips/AddTrip";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +58,7 @@ const AppContent = () => {
         <Route path="/trips" element={<Layout><TripFolders /></Layout>} />
         <Route path="/trip/:id" element={<Layout><TripDetail /></Layout>} />
         <Route path="/profile" element={<Layout><ProfileScreen /></Layout>} />
+        <Route path="/trips/new" element={<Layout><AddTrip /></Layout>} />
         
         {/* Catch all */}
         <Route path="*" element={<NotFound />} />
