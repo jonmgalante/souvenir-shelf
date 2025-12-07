@@ -1,70 +1,56 @@
-
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
 
 const useSessionCheck = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [checkComplete, setCheckComplete] = useState(false);
   const [hasSession, setHasSession] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    
-    
-    // Handle hash fragment or query string for OAuth redirects
+
+    // Handle hash fragment or query string for OAuth/magic link redirects
     const handleAuthRedirect = () => {
-      // Get the current URL
       const currentUrl = window.location.href;
       console.log('useSessionCheck - Current URL:', currentUrl);
-      
-      // Look for both hash fragment and query parameter formats
+
       if (
-        (currentUrl.includes('#access_token=') || currentUrl.includes('?access_token=')) &&
-        (currentUrl.includes('type=recovery') || currentUrl.includes('type=signup') || currentUrl.includes('type=magiclink'))
+        (currentUrl.includes('#access_token=') ||
+          currentUrl.includes('?access_token=')) &&
+        (currentUrl.includes('type=recovery') ||
+          currentUrl.includes('type=signup') ||
+          currentUrl.includes('type=magiclink'))
       ) {
-        console.log('useSessionCheck - Found auth redirect with access_token, handling auth redirect');
-        
-        // Important: This will be handled by Supabase automatically
-        // Just wait a moment to let Supabase process the token before we check the session
+        console.log(
+          'useSessionCheck - Found auth redirect with access_token, letting Supabase process token before session check',
+        );
         setTimeout(() => {
           if (mounted) {
             checkSession();
           }
         }, 500);
-        
         return true;
       }
       return false;
     };
-    
+
     const checkSession = async () => {
       try {
-        // First check if we have an auth redirect to handle
+        // If we have an auth redirect in progress, delay the session check
         if (handleAuthRedirect()) {
           return;
         }
-        
+
         const { data } = await supabase.auth.getSession();
         const sessionExists = !!data.session;
-        
-        console.log('useSessionCheck - Session check:', sessionExists ? 'Session found' : 'No session');
-        
+
+        console.log(
+          'useSessionCheck - Session check:',
+          sessionExists ? 'Session found' : 'No session',
+        );
+
         if (!mounted) return;
-        
+
         setHasSession(sessionExists);
-        
-        // Only redirect if we're on the auth page and have a session
-        if (sessionExists && (location.pathname === '/auth' || 
-                              location.pathname === '/' || 
-                              location.pathname === '/index' || 
-                              location.pathname === '/index.html')) {
-          console.log('useSessionCheck - On auth/root/index page with session, redirecting to collection');
-          navigate('/collection', { replace: true });
-        }
-        
         setCheckComplete(true);
       } catch (error) {
         console.error('useSessionCheck - Error checking session:', error);
@@ -74,35 +60,23 @@ const useSessionCheck = () => {
         }
       }
     };
-    
+
     checkSession();
-    
-    // Listen for auth state changes
+
+    // Keep hasSession in sync with Supabase auth state
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('useSessionCheck - Auth state changed:', event);
-      
       if (!mounted) return;
-      
-      if (event === 'SIGNED_IN' && session) {
-        setHasSession(true);
-        console.log('useSessionCheck - User signed in, redirecting to collection');
-        
-        navigate('/collection', { replace: true });
-      } else if (event === 'SIGNED_OUT') {
-        setHasSession(false);
-        console.log('useSessionCheck - User signed out');
-        if (location.pathname !== '/auth') {
-          
-          navigate('/auth', { replace: true });
-        }
-      }
+      const sessionExists = !!session;
+      setHasSession(sessionExists);
+      setCheckComplete(true);
     });
-    
+
     return () => {
       mounted = false;
       data.subscription.unsubscribe();
     };
-  }, [navigate, location.pathname]);
+  }, []);
 
   return { checkComplete, hasSession };
 };
