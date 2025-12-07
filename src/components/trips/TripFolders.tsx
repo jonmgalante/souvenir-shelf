@@ -28,7 +28,7 @@ const TripFolders: React.FC = () => {
             {trips.length} {trips.length === 1 ? 'trip' : 'trips'} saved
           </p>
         </div>
-        <Button onClick={() => navigate('/add-trip')} size="sm">
+        <Button onClick={() => navigate('/trips/new')} size="sm">
           <PlusIcon className="h-4 w-4 mr-2" />
           New Trip
         </Button>
@@ -40,7 +40,7 @@ const TripFolders: React.FC = () => {
           <p className="text-gray-500 mb-4">
             You haven't created any trips yet.
           </p>
-          <Button onClick={() => navigate('/add-trip')} variant="outline">
+          <Button onClick={() => navigate('/trips/new')} variant="outline">
             <PlusIcon className="h-4 w-4 mr-2" />
             Create your first trip
           </Button>
