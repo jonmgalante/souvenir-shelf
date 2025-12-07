@@ -31,7 +31,7 @@ const Navigation: React.FC = () => {
               label="" 
               className="h-auto p-1"
             />
-            <span className="text-xs font-medium text-gray-500">Profile</span>
+            <span className="text-xs font-medium text-gray-500">Sign Out</span>
           </div>
         ) : (
           <NavItem to="/profile" icon={<User className="nav-icon" />} label="Profile" />
