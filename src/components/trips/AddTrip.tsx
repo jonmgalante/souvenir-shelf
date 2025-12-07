@@ -64,7 +64,7 @@ const AddTrip: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto py-8 pb-24">
+    <div className="max-w-xl mx-auto px-4 pt-8 pb-24">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-medium">Create Trip</h1>
         <button
