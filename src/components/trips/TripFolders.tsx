@@ -7,7 +7,7 @@ import { CalendarIcon, PlusIcon } from 'lucide-react';
 import { formatDateRange } from '../../lib/utils';
 
 const TripFolders: React.FC = () => {
-  const { trips, loading } = useSouvenirs();
+    const { trips, loading, souvenirs } = useSouvenirs();
   const navigate = useNavigate();
   
   if (loading) {
@@ -49,7 +49,9 @@ const TripFolders: React.FC = () => {
         /* Trip cards */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {trips.map((trip) => {
-            const souvenirCount = trip.souvenirCount || 0;
+              const souvenirCount = souvenirs.filter(
+              (souvenir) => souvenir.tripId === trip.id
+            ).length;
             const souvenirLabel =
               souvenirCount === 1 ? 'souvenir' : 'souvenirs';
 

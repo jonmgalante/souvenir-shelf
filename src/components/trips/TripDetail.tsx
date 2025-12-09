@@ -7,11 +7,6 @@ import {
   Map,
   Plus,
   List,
-  Upload,
-  X,
-  Camera,
-  Pencil,
-  ImageIcon,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import SouvenirCard from '../souvenirs/SouvenirCard';
@@ -27,38 +22,18 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { toast } from '../ui/use-toast';
 import { ScrollArea } from '../ui/scroll-area';
-import { useImageUploadWithCrop } from '../../hooks/useImageUploadWithCrop';
-import ImageUploadWithCrop from '../souvenirs/ImageUploadWithCrop';
 
 const TripDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { trips, souvenirs, loading, updateSouvenir, updateTrip } =
-    useSouvenirs();
+  const { trips, souvenirs, loading, updateSouvenir } = useSouvenirs();
   const navigate = useNavigate();
 
   const [trip, setTrip] = useState<Trip | undefined>(undefined);
   const [tripSouvenirs, setTripSouvenirs] = useState<Souvenir[]>([]);
   const [otherSouvenirs, setOtherSouvenirs] = useState<Souvenir[]>([]);
   const [isAddExistingOpen, setIsAddExistingOpen] = useState(false);
-  const [isPhotoDialogOpen, setIsPhotoDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingToTrip, setIsAddingToTrip] = useState(false);
-  const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
-  const {
-    imageUrls,
-    handleImageChange,
-    removeImage,
-    showCropper,
-    setShowCropper,
-    imageToEdit,
-    setImageToEdit,
-    currentEditIndex,
-    setCurrentEditIndex,
-    handleCropComplete,
-    images,
-  } = useImageUploadWithCrop();
 
   useEffect(() => {
     if (!loading && trips.length > 0 && id) {
@@ -76,96 +51,6 @@ const TripDetail: React.FC = () => {
       }
     }
   }, [id, trips, souvenirs, loading]);
-
-  useEffect(() => {
-    setImageError(false);
-
-    if (trip?.coverImage && isPhotoDialogOpen && imageUrls.length === 0) {
-      try {
-        loadTripCoverImage(trip.coverImage);
-      } catch (error) {
-        console.error('Failed to load trip cover image:', error);
-        setImageError(true);
-      }
-    }
-  }, [trip, isPhotoDialogOpen, imageUrls.length]);
-
-  const loadTripCoverImage = (coverImageUrl: string) => {
-    if (imageError) return;
-
-    if (coverImageUrl.startsWith('data:')) {
-      try {
-        const file = dataURLtoFile(coverImageUrl, 'trip-cover.jpg');
-        createImageFromFile(file);
-      } catch (error) {
-        console.error('Error creating file from data URL:', error);
-        setImageError(true);
-      }
-      return;
-    }
-
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-
-    img.onload = () => {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0);
-          const dataUrl = canvas.toDataURL('image/jpeg');
-          const file = dataURLtoFile(dataUrl, 'trip-cover.jpg');
-          createImageFromFile(file);
-        }
-      } catch (error) {
-        console.error('Error processing loaded image:', error);
-        setImageError(true);
-      }
-    };
-
-    img.onerror = () => {
-      console.error('Failed to load image from URL:', coverImageUrl);
-      setImageError(true);
-    };
-
-    img.src = coverImageUrl;
-  };
-
-  const createImageFromFile = (file: File) => {
-    const event = {
-      target: {
-        files: [file],
-      },
-    } as unknown as React.ChangeEvent<HTMLInputElement>;
-
-    handleImageChange(event);
-  };
-
-  const dataURLtoFile = (dataURL: string, filename: string): File => {
-    const arr = dataURL.split(',');
-    if (arr.length !== 2) {
-      throw new Error('Invalid data URL format');
-    }
-
-    const mimeMatch = arr[0].match(/:(.*?);/);
-    if (!mimeMatch || mimeMatch.length < 2) {
-      throw new Error('Could not extract MIME type from data URL');
-    }
-
-    const mime = mimeMatch[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-
-    return new File([u8arr], filename, { type: mime });
-  };
 
   const addExistingSouvenir = async (souvenir: Souvenir) => {
     try {
@@ -193,45 +78,6 @@ const TripDetail: React.FC = () => {
     } finally {
       setIsAddingToTrip(false);
     }
-  };
-
-  const handleUpdateTripPhoto = async () => {
-    if (!trip || !id || images.length === 0) return;
-
-    try {
-      setIsUpdatingPhoto(true);
-
-      const imageUrl = images[0];
-      console.log(
-        'Updating trip photo with URL:',
-        imageUrl.substring(0, 50) + '...',
-      );
-
-      await updateTrip(id, { coverImage: imageUrl });
-
-      setTrip({ ...trip, coverImage: imageUrl });
-      setImageError(false);
-
-      toast({
-        title: 'Trip photo updated',
-        description: 'Your trip photo has been updated successfully.',
-      });
-
-      setIsPhotoDialogOpen(false);
-    } catch (error) {
-      console.error('Error updating trip photo:', error);
-      toast({
-        title: 'Error updating photo',
-        description: 'There was a problem updating the trip photo.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsUpdatingPhoto(false);
-    }
-  };
-
-  const handleEditImage = () => {
-    setIsPhotoDialogOpen(true);
   };
 
   const handleCreateNew = () => {
@@ -342,21 +188,6 @@ const TripDetail: React.FC = () => {
     return acc;
   }, {} as Record<string, Souvenir[]>);
 
-  const handleCoverImageError = () => {
-    console.error('Failed to load trip cover image:', trip.coverImage);
-    setImageError(true);
-  };
-
-  const isValidCoverImage =
-    !imageError &&
-    trip.coverImage &&
-    typeof trip.coverImage === 'string' &&
-    trip.coverImage.trim() !== '';
-
-  const coverImageStyle = !isValidCoverImage
-    ? { backgroundColor: '#f0f0f0' }
-    : {};
-
   return (
     <div className="souvenir-container animate-fade-in pb-24 max-w-5xl mx-auto px-4">
       <div className="flex items-center space-x-4 mb-6">
@@ -369,53 +200,25 @@ const TripDetail: React.FC = () => {
         <h1 className="page-title">{trip.name}</h1>
       </div>
 
-      <div
-        className="w-full aspect-video rounded-lg bg-muted mb-6 relative overflow-hidden cursor-pointer group"
-        style={coverImageStyle}
-        onClick={handleEditImage}
-      >
-        {isValidCoverImage ? (
-          <img
-            src={trip.coverImage}
-            alt={trip.name}
-            className="w-full h-full object-contain"
-            onError={handleCoverImageError}
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-souvenir-100">
-            <div className="text-center">
-              <Camera className="h-12 w-12 mx-auto mb-2 text-souvenir-300" />
-              <p className="text-souvenir-400">Click to add a cover photo</p>
-            </div>
+      {/* Compact meta section (dates, locations, count) */}
+      <div className="mb-6 space-y-1 text-sm text-muted-foreground">
+        <div className="flex items-center space-x-2">
+          <Calendar className="h-4 w-4" />
+          <span>{formattedDateRange}</span>
+        </div>
+        {locationSummary && (
+          <div className="flex items-center space-x-2">
+            <Map className="h-3.5 w-3.5" />
+            <span>{locationSummary}</span>
           </div>
         )}
-
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-souvenir-500/80 via-souvenir-500/20 to-transparent flex flex-col justify-end p-6 text-white">
-          <div className="space-y-1 text-sm">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4" />
-              <span>{formattedDateRange}</span>
-            </div>
-            {locationSummary && (
-              <div className="flex items-center space-x-2 text-xs text-white/90">
-                <Map className="h-3.5 w-3.5" />
-                <span>{locationSummary}</span>
-              </div>
-            )}
-            <p className="text-xs text-white/80">
-              {tripSouvenirCount}{' '}
-              {tripSouvenirCount === 1 ? 'souvenir' : 'souvenirs'}
-            </p>
-          </div>
-        </div>
-
-        <div className="absolute inset-0 bg-souvenir-500/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <div className="bg-white/80 text-black p-2 rounded-full">
-            <Pencil className="h-6 w-6" />
-          </div>
-        </div>
+        <p>
+          {tripSouvenirCount}{' '}
+          {tripSouvenirCount === 1 ? 'souvenir' : 'souvenirs'}
+        </p>
       </div>
 
+      {/* Souvenirs section */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-medium">Souvenirs from this trip</h2>
         <div className="flex gap-2">
@@ -457,12 +260,12 @@ const TripDetail: React.FC = () => {
                   {locationLabel}
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {souvenirs.map((souvenir) => (
-          <SouvenirCard
-            key={souvenir.id}
-            souvenir={souvenir}
-            onClick={() => navigate(`/souvenir/${souvenir.id}`)}
-          />
+                  {souvenirs.map((souvenir) => (
+                    <SouvenirCard
+                      key={souvenir.id}
+                      souvenir={souvenir}
+                      onClick={() => navigate(`/souvenir/${souvenir.id}`)}
+                    />
                   ))}
                 </div>
               </div>
@@ -492,6 +295,7 @@ const TripDetail: React.FC = () => {
         </div>
       )}
 
+      {/* Add existing souvenir dialog */}
       <Dialog open={isAddExistingOpen} onOpenChange={setIsAddExistingOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -555,74 +359,6 @@ const TripDetail: React.FC = () => {
                 </p>
               </div>
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={isPhotoDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsPhotoDialogOpen(false);
-            if (imageUrls.length > 0) {
-              removeImage(0);
-            }
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Trip Photo</DialogTitle>
-            <DialogDescription>
-              Edit or upload a new cover image for your trip.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4 space-y-4">
-            <ImageUploadWithCrop
-              imageUrls={imageUrls}
-              handleImageChange={handleImageChange}
-              removeImage={removeImage}
-              showCropper={showCropper}
-              imageToEdit={imageToEdit}
-              onCropCancel={() => {
-                setShowCropper(false);
-                setImageToEdit(null);
-              }}
-              onCropComplete={handleCropComplete}
-              onEditImage={(index) => {
-                setImageToEdit(imageUrls[index]);
-                setCurrentEditIndex(index);
-                setShowCropper(true);
-              }}
-            />
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (imageUrls.length > 0) {
-                    removeImage(0);
-                  }
-                  setIsPhotoDialogOpen(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                disabled={imageUrls.length === 0 || isUpdatingPhoto}
-                onClick={handleUpdateTripPhoto}
-              >
-                {isUpdatingPhoto ? (
-                  <>
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-background border-t-transparent rounded-full" />
-                    Updating...
-                  </>
-                ) : (
-                  <>Save Changes</>
-                )}
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>

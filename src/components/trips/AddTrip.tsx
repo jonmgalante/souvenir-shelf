@@ -16,11 +16,12 @@ import { Calendar } from "../ui/calendar";
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/context/auth";
-import { addTrip } from "../../services/tripService";
+import { useSouvenirs } from "@/context/souvenir";
 
 const AddTrip: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { addTrip } = useSouvenirs();
 
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState<Date | null>(new Date());
@@ -29,6 +30,7 @@ const AddTrip: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!user) {
       // Should not happen if Layout is gating routes, but guard anyway
       console.error("Cannot create trip: no authenticated user");
@@ -44,7 +46,8 @@ const AddTrip: React.FC = () => {
     try {
       setSubmitting(true);
 
-      const newTrip = await addTrip(user.id, {
+      // Use context-level addTrip so SouvenirContext's trips stay in sync
+      await addTrip({
         name: name.trim(),
         dateRange: {
           start: startDate.toISOString(),
@@ -53,8 +56,8 @@ const AddTrip: React.FC = () => {
         coverImage: null,
       });
 
-      // Navigate to the new trip detail page
-      navigate(`/trip/${newTrip.id}`);
+      // After creation, go back to the Trips list
+      navigate("/trips");
     } catch (err) {
       console.error("Error creating trip:", err);
       // Optionally show a toast here
