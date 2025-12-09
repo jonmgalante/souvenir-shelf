@@ -218,60 +218,60 @@ const TripDetail: React.FC = () => {
         </p>
       </div>
 
-      {/* Souvenirs section */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-medium">Souvenirs from this trip</h2>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsAddExistingOpen(true)}
-            disabled={otherSouvenirs.length === 0}
-          >
-            <List className="mr-2 h-4 w-4" />
-            Add Existing
-          </Button>
-          <Button variant="default" size="sm" onClick={handleCreateNew}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create New
-          </Button>
-        </div>
-      </div>
+      {tripSouvenirCount > 0 ? (
+        <>
+          {/* Souvenirs section */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-medium">Souvenirs from this trip</h2>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAddExistingOpen(true)}
+                disabled={otherSouvenirs.length === 0}
+              >
+                <List className="mr-2 h-4 w-4" />
+                Add Existing
+              </Button>
+              <Button variant="default" size="sm" onClick={handleCreateNew}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create New
+              </Button>
+            </div>
+          </div>
 
-      {tripSouvenirCount > 0 && (
-        <p className="mb-4 text-sm text-muted-foreground">
-          {tripSouvenirCount}{' '}
-          {tripSouvenirCount === 1 ? 'souvenir' : 'souvenirs'}
-          {locationCount > 0 && (
-            <>
-              {' '}
-              • {locationCount} location{locationCount === 1 ? '' : 's'}
-            </>
-          )}
-        </p>
-      )}
+          <p className="mb-4 text-sm text-muted-foreground">
+            {tripSouvenirCount}{' '}
+            {tripSouvenirCount === 1 ? 'souvenir' : 'souvenirs'}
+            {locationCount > 0 && (
+              <>
+                {' '}
+                • {locationCount} location{locationCount === 1 ? '' : 's'}
+              </>
+            )}
+          </p>
 
-      {tripSouvenirs.length > 0 ? (
-        <div className="space-y-6">
-          {Object.entries(souvenirsByLocation).map(
-            ([locationLabel, souvenirs]) => (
-              <div key={locationLabel}>
-                <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
-                  {locationLabel}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {souvenirs.map((souvenir) => (
-                    <SouvenirCard
-                      key={souvenir.id}
-                      souvenir={souvenir}
-                      onClick={() => navigate(`/souvenir/${souvenir.id}`)}
-                    />
-                  ))}
+          <div className="space-y-6">
+            {Object.entries(souvenirsByLocation).map(
+              ([locationLabel, souvenirs]) => (
+                <div key={locationLabel}>
+                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
+                    {locationLabel}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {souvenirs.map((souvenir) => (
+                      <SouvenirCard
+                        key={souvenir.id}
+                        souvenir={souvenir}
+                        onClick={() => navigate(`/souvenir/${souvenir.id}`)}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ),
-          )}
-        </div>
+              ),
+            )}
+          </div>
+        </>
       ) : (
         <div className="bg-muted/30 rounded-lg p-8 text-center">
           <Map className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />

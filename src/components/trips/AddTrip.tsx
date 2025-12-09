@@ -96,83 +96,69 @@ const AddTrip: React.FC = () => {
           />
         </div>
 
-        {/* Date range */}
+                {/* Date range */}
         <div className="space-y-4">
           <h2 className="text-lg font-medium">Dates</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Start date */}
             <div className="space-y-2">
-              <span className="block text-sm font-medium">
+              <label className="block text-sm font-medium" htmlFor="trip-start">
                 Start Date
-              </span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? (
-                      format(startDate, "MMMM d, yyyy")
-                    ) : (
-                      <span>Select a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate ?? undefined}
-                    onSelect={(date) => setStartDate(date ?? null)}
-                    initialFocus
-                    captionLayout="dropdown-buttons"
-                    fromYear={1950}
-                    toYear={new Date().getFullYear() + 5}
-                  />
-                </PopoverContent>
-              </Popover>
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                  <CalendarIcon className="h-4 w-4" />
+                </span>
+                <input
+                  id="trip-start"
+                  type="date"
+                  className={cn(
+                    'w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
+                    !startDate && 'text-muted-foreground'
+                  )}
+                  value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (!value) {
+                      setStartDate(null);
+                      return;
+                    }
+                    const next = new Date(value + 'T00:00:00');
+                    setStartDate(next);
+                  }}
+                />
+              </div>
             </div>
 
             {/* End date */}
             <div className="space-y-2">
-              <span className="block text-sm font-medium">
+              <label className="block text-sm font-medium" htmlFor="trip-end">
                 End Date
-              </span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? (
-                      format(endDate, "MMMM d, yyyy")
-                    ) : (
-                      <span>Select a date</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate ?? undefined}
-                    onSelect={(date) => setEndDate(date ?? null)}
-                    initialFocus
-                    captionLayout="dropdown-buttons"
-                    fromYear={1950}
-                    toYear={new Date().getFullYear() + 5}
-                  />
-                </PopoverContent>
-              </Popover>
+              </label>
+              <div className="relative">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
+                  <CalendarIcon className="h-4 w-4" />
+                </span>
+                <input
+                  id="trip-end"
+                  type="date"
+                  className={cn(
+                    'w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
+                    !endDate && 'text-muted-foreground'
+                  )}
+                  value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (!value) {
+                      setEndDate(null);
+                      return;
+                    }
+                    const next = new Date(value + 'T00:00:00');
+                    setEndDate(next);
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>
