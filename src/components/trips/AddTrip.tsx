@@ -114,7 +114,7 @@ const AddTrip: React.FC = () => {
                   id="trip-start"
                   type="date"
                   className={cn(
-                                        'w-full max-w-xs rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
+                                                            'w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
                     !startDate && 'text-muted-foreground'
                   )}
                   value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
@@ -144,7 +144,7 @@ const AddTrip: React.FC = () => {
                   id="trip-end"
                   type="date"
                   className={cn(
-                                        'w-full max-w-xs rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
+                                                            'w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
                     !endDate && 'text-muted-foreground'
                   )}
                   value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}

@@ -38,7 +38,7 @@ const DateSelection: React.FC<DateSelectionProps> = ({ date, setDate }) => {
         <input
           type="date"
           className={cn(
-            'w-full max-w-xs rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
+                        'w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
             !date && 'text-muted-foreground'
           )}
           value={inputValue}
