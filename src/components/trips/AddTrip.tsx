@@ -7,12 +7,6 @@ import { format } from "date-fns";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../ui/popover";
-import { Calendar } from "../ui/calendar";
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/context/auth";
@@ -32,13 +26,11 @@ const AddTrip: React.FC = () => {
     e.preventDefault();
 
     if (!user) {
-      // Should not happen if Layout is gating routes, but guard anyway
       console.error("Cannot create trip: no authenticated user");
       return;
     }
 
     if (!name.trim() || !startDate || !endDate) {
-      // You can swap this for a toast if you prefer
       console.warn("Trip name and dates are required");
       return;
     }
@@ -60,7 +52,6 @@ const AddTrip: React.FC = () => {
       navigate("/trips");
     } catch (err) {
       console.error("Error creating trip:", err);
-      // Optionally show a toast here
     } finally {
       setSubmitting(false);
     }
@@ -96,11 +87,11 @@ const AddTrip: React.FC = () => {
           />
         </div>
 
-                {/* Date range */}
+        {/* Date range */}
         <div className="space-y-4">
           <h2 className="text-lg font-medium">Dates</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-4">
             {/* Start date */}
             <div className="space-y-2">
               <label className="block text-sm font-medium" htmlFor="trip-start">
@@ -114,17 +105,17 @@ const AddTrip: React.FC = () => {
                   id="trip-start"
                   type="date"
                   className={cn(
-                                                            'w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
-                    !startDate && 'text-muted-foreground'
+                    "w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm",
+                    !startDate && "text-muted-foreground"
                   )}
-                  value={startDate ? format(startDate, 'yyyy-MM-dd') : ''}
+                  value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (!value) {
                       setStartDate(null);
                       return;
                     }
-                    const next = new Date(value + 'T00:00:00');
+                    const next = new Date(value + "T00:00:00");
                     setStartDate(next);
                   }}
                 />
@@ -144,17 +135,17 @@ const AddTrip: React.FC = () => {
                   id="trip-end"
                   type="date"
                   className={cn(
-                                                            'w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
-                    !endDate && 'text-muted-foreground'
+                    "w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm",
+                    !endDate && "text-muted-foreground"
                   )}
-                  value={endDate ? format(endDate, 'yyyy-MM-dd') : ''}
+                  value={endDate ? format(endDate, "yyyy-MM-dd") : ""}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (!value) {
                       setEndDate(null);
                       return;
                     }
-                    const next = new Date(value + 'T00:00:00');
+                    const next = new Date(value + "T00:00:00");
                     setEndDate(next);
                   }}
                 />
