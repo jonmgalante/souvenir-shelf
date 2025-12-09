@@ -130,6 +130,9 @@ const AddTrip: React.FC = () => {
                     selected={startDate ?? undefined}
                     onSelect={(date) => setStartDate(date ?? null)}
                     initialFocus
+                    captionLayout="dropdown-buttons"
+                    fromYear={1950}
+                    toYear={new Date().getFullYear() + 5}
                   />
                 </PopoverContent>
               </Popover>
@@ -164,6 +167,9 @@ const AddTrip: React.FC = () => {
                     selected={endDate ?? undefined}
                     onSelect={(date) => setEndDate(date ?? null)}
                     initialFocus
+                    captionLayout="dropdown-buttons"
+                    fromYear={1950}
+                    toYear={new Date().getFullYear() + 5}
                   />
                 </PopoverContent>
               </Popover>

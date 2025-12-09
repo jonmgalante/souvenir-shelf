@@ -61,6 +61,9 @@ const DateSelection: React.FC<DateSelectionProps> = ({ date, setDate }) => {
             selected={date ?? undefined}
             onSelect={handleSelect}
             initialFocus
+            captionLayout="dropdown-buttons"
+            fromYear={1950}
+            toYear={new Date().getFullYear() + 5}
           />
         </PopoverContent>
       </Popover>
