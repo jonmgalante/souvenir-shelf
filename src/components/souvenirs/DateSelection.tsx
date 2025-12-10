@@ -1,7 +1,16 @@
-import React from 'react';
+// src/components/souvenirs/DateSelection.tsx
+
+import React, { useState } from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
+import { Calendar } from '../ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../ui/popover';
 
 interface DateSelectionProps {
   date: Date | null;
@@ -9,21 +18,20 @@ interface DateSelectionProps {
 }
 
 const DateSelection: React.FC<DateSelectionProps> = ({ date, setDate }) => {
-  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    const value = e.target.value;
-    if (!value) {
+  const [open, setOpen] = useState(false);
+
+  const handleSelect = (selected: Date | undefined) => {
+    if (!selected) {
       setDate(null);
       return;
     }
-    // value is in yyyy-MM-dd format
-    const next = new Date(value + 'T00:00:00');
-    setDate(next);
+
+    setDate(selected);
+    setOpen(false); // close calendar once a date is chosen
   };
 
-  const inputValue = date ? format(date, 'yyyy-MM-dd') : '';
-
   return (
-      <div className="space-y-4 w-full">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">
           Date Acquired{' '}
@@ -31,20 +39,38 @@ const DateSelection: React.FC<DateSelectionProps> = ({ date, setDate }) => {
         </h2>
       </div>
 
-      <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
-          <CalendarIcon className="h-4 w-4" />
-        </span>
-        <input
-          type="date"
-          className={cn(
-                        'w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm',
-            !date && 'text-muted-foreground'
-          )}
-          value={inputValue}
-          onChange={handleChange}
-        />
-      </div>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(
+              'w-full justify-start text-left font-normal',
+              !date && 'text-muted-foreground'
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {date ? (
+              format(date, 'MMMM d, yyyy')
+            ) : (
+              <span>When did you get this?</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            mode="single"
+            selected={date ?? undefined}
+            onSelect={handleSelect}
+            initialFocus
+            // This gives you the Month / Year dropdowns you liked
+            captionLayout="dropdown-buttons"
+            fromYear={1950}
+            toYear={new Date().getFullYear() + 5}
+          />
+        </PopoverContent>
+      </Popover>
 
       {date && (
         <p className="text-xs text-muted-foreground">

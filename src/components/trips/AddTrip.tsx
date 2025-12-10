@@ -7,6 +7,12 @@ import { format } from "date-fns";
 
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { Calendar } from "../ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../ui/popover";
 import { cn } from "@/lib/utils";
 
 import { useAuth } from "@/context/auth";
@@ -21,6 +27,8 @@ const AddTrip: React.FC = () => {
   const [startDate, setStartDate] = useState<Date | null>(new Date());
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [submitting, setSubmitting] = useState(false);
+  const [startOpen, setStartOpen] = useState(false);
+  const [endOpen, setEndOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +63,24 @@ const AddTrip: React.FC = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleStartSelect = (selected: Date | undefined) => {
+    if (!selected) {
+      setStartDate(null);
+      return;
+    }
+    setStartDate(selected);
+    setStartOpen(false);
+  };
+
+  const handleEndSelect = (selected: Date | undefined) => {
+    if (!selected) {
+      setEndDate(null);
+      return;
+    }
+    setEndDate(selected);
+    setEndOpen(false);
   };
 
   return (
@@ -97,29 +123,36 @@ const AddTrip: React.FC = () => {
               <label className="block text-sm font-medium" htmlFor="trip-start">
                 Start Date
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
-                  <CalendarIcon className="h-4 w-4" />
-                </span>
-                <input
-                  id="trip-start"
-                  type="date"
-                  className={cn(
-                    "w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm",
-                    !startDate && "text-muted-foreground"
-                  )}
-                  value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (!value) {
-                      setStartDate(null);
-                      return;
-                    }
-                    const next = new Date(value + "T00:00:00");
-                    setStartDate(next);
-                  }}
-                />
-              </div>
+              <Popover open={startOpen} onOpenChange={setStartOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full max-w-sm justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? (
+                      format(startDate, "MMMM d, yyyy")
+                    ) : (
+                      <span>Select a start date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate ?? undefined}
+                    onSelect={handleStartSelect}
+                    initialFocus
+                    captionLayout="dropdown-buttons"
+                    fromYear={1950}
+                    toYear={new Date().getFullYear() + 5}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* End date */}
@@ -127,29 +160,36 @@ const AddTrip: React.FC = () => {
               <label className="block text-sm font-medium" htmlFor="trip-end">
                 End Date
               </label>
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
-                  <CalendarIcon className="h-4 w-4" />
-                </span>
-                <input
-                  id="trip-end"
-                  type="date"
-                  className={cn(
-                    "w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm",
-                    !endDate && "text-muted-foreground"
-                  )}
-                  value={endDate ? format(endDate, "yyyy-MM-dd") : ""}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (!value) {
-                      setEndDate(null);
-                      return;
-                    }
-                    const next = new Date(value + "T00:00:00");
-                    setEndDate(next);
-                  }}
-                />
-              </div>
+              <Popover open={endOpen} onOpenChange={setEndOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full max-w-sm justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? (
+                      format(endDate, "MMMM d, yyyy")
+                    ) : (
+                      <span>Select an end date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate ?? undefined}
+                    onSelect={handleEndSelect}
+                    initialFocus
+                    captionLayout="dropdown-buttons"
+                    fromYear={1950}
+                    toYear={new Date().getFullYear() + 5}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>
