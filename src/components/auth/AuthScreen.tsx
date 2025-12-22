@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import AuthForm from './AuthForm';
-import SocialLoginButtons from './SocialLoginButtons';
+
 import usePageTitle from '@/hooks/usePageTitle';
-import useSessionCheck from './useSessionCheck';
+
 
 const AuthScreen: React.FC = () => {
   const { user, loading } = useAuth();
@@ -14,8 +14,7 @@ const AuthScreen: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   
-  // Run session check to handle OAuth redirects
-  useSessionCheck();
+
   
   // Set the page title
   usePageTitle(isLogin ? 'Sign In' : 'Sign Up');
@@ -62,22 +61,7 @@ const AuthScreen: React.FC = () => {
           setLoading={setFormLoading}
         />
 
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gradient-to-b from-gray-50 to-gray-100 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-          
-          <div className="mt-6">
-            <SocialLoginButtons loading={formLoading} setLoading={setFormLoading} />
-          </div>
-        </div>
+        
       </div>
     </div>
   );
