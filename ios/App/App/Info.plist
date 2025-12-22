@@ -45,5 +45,12 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+		<!-- Privacy: Camera & Photo Library -->
+	<key>NSCameraUsageDescription</key>
+	<string>SouvieShelf uses your camera to add photos of your souvenirs.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SouvieShelf lets you choose photos from your library to attach to souvenirs.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>SouvieShelf can save souvenir photos to your library if you choose.</string>
 </dict>
 </plist>
