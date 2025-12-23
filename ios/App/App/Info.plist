@@ -52,5 +52,8 @@
 	<string>SouvieShelf lets you choose photos from your library to attach to souvenirs.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>SouvieShelf can save souvenir photos to your library if you choose.</string>
+		<!-- Privacy: Location -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>SouvieShelf uses your location to tag souvenirs with where you found them.</string>
 </dict>
 </plist>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
 import { useSouvenirs } from '../../context/souvenir';
 import { Location } from '../../types/souvenir';
 import { Map, Calendar, ChevronDown, MapPin } from 'lucide-react';
@@ -49,6 +51,7 @@ const AddSouvenir: React.FC = () => {
   // UI state
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [gettingLocation, setGettingLocation] = useState(false);
   
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev => 
@@ -81,7 +84,6 @@ const AddSouvenir: React.FC = () => {
       
       if (data.features && data.features.length > 0) {
         const [longitude, latitude] = data.features[0].center;
-        const place_name = data.features[0].place_name || "";
         
         // If we searched by address, try to extract city and country from the result
         let resultCity = city;
@@ -169,8 +171,10 @@ const AddSouvenir: React.FC = () => {
     }
   };
 
-  const handleUseCurrentLocation = () => {
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+  // ✅ FIX: Use Capacitor Geolocation on native (reliable on iPad), with a visible loading state
+  const handleUseCurrentLocation = async () => {
+    // Web fallback guard (Capacitor Geolocation uses navigator.geolocation on web)
+    if (!Capacitor.isNativePlatform() && (typeof navigator === 'undefined' || !navigator.geolocation)) {
       toast({
         title: 'Location unavailable',
         description: 'Your device does not support location services.',
@@ -179,43 +183,54 @@ const AddSouvenir: React.FC = () => {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          const resolved = await reverseGeocodeLocation(latitude, longitude);
-          if (resolved) {
-            setLocation(prev => ({
-              ...prev,
-              ...resolved,
-            }));
-          } else {
-            // Fallback: set coordinates only
-            setLocation(prev => ({
-              ...prev,
-              latitude,
-              longitude,
-            }));
-          }
-        } catch (error) {
-          console.error('Error getting current location:', error);
+    setGettingLocation(true);
+
+    try {
+      // On native, explicitly request permission so the button never “does nothing”
+      if (Capacitor.isNativePlatform()) {
+        const perms = await Geolocation.requestPermissions();
+        const status = (perms as any)?.location ?? (perms as any)?.coarseLocation;
+
+        if (status === 'denied') {
           toast({
-            title: 'Unable to get current location',
-            description: 'Please check location permissions in your device settings.',
+            title: 'Location permission denied',
+            description: 'Enable location access in Settings to use Current Location.',
             variant: 'destructive',
           });
+          return;
         }
-      },
-      (error) => {
-        console.error('Error getting current location:', error);
-        toast({
-          title: 'Unable to get current location',
-          description: 'Please check location permissions in your device settings.',
-          variant: 'destructive',
-        });
-      },
-      { enableHighAccuracy: true }
-    );
+      }
+
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+      });
+
+      const { latitude, longitude } = position.coords;
+
+      const resolved = await reverseGeocodeLocation(latitude, longitude);
+      if (resolved) {
+        setLocation((prev) => ({
+          ...prev,
+          ...resolved,
+        }));
+      } else {
+        // Fallback: set coordinates only
+        setLocation((prev) => ({
+          ...prev,
+          latitude,
+          longitude,
+        }));
+      }
+    } catch (error) {
+      console.error('Error getting current location:', error);
+      toast({
+        title: 'Unable to get current location',
+        description: 'Please check location permissions in your device settings.',
+        variant: 'destructive',
+      });
+    } finally {
+      setGettingLocation(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -238,7 +253,6 @@ const AddSouvenir: React.FC = () => {
       });
       return;
     }
-    
     
     try {
       setSubmitting(true);
@@ -272,7 +286,6 @@ const AddSouvenir: React.FC = () => {
         description: "Souvenir added to your collection",
       });
       
-      // If we have a tripId, redirect back to that trip details page
       if (selectedTripId) {
         navigate(`/trip/${selectedTripId}`);
       } else {
@@ -304,9 +317,10 @@ const AddSouvenir: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={handleUseCurrentLocation}
+              disabled={gettingLocation}
             >
               <MapPin className="h-4 w-4 mr-1" />
-              Use Current Location
+              {gettingLocation ? 'Getting Location...' : 'Use Current Location'}
             </Button>
           </div>
           
@@ -462,9 +476,9 @@ const AddSouvenir: React.FC = () => {
         />
 
         <TripInput
-         trips={trips}
-         selectedTripId={selectedTripId}
-         onChange={setSelectedTripId}
+          trips={trips}
+          selectedTripId={selectedTripId}
+          onChange={setSelectedTripId}
         />
         
         <DateSelection 
