@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
@@ -17,19 +16,20 @@ const ProfileScreen: React.FC = () => {
     profileData,
     setIsEditing,
     handleSignOut,
+    handleDeleteAccount,   // ✅ add this
     handleProfileUpdate,
     handlePhotoUpload,
   } = useProfileData();
-  
+
   if (!user) {
     navigate('/auth');
     return null;
   }
-  
+
   return (
     <div className="souvenir-container animate-fade-in">
       <h1 className="page-title">Your Profile</h1>
-      
+
       <div className="glass-card rounded-xl p-6 mb-6">
         {loading ? (
           <div className="flex justify-center items-center py-8">
@@ -44,7 +44,7 @@ const ProfileScreen: React.FC = () => {
               onEditToggle={() => setIsEditing(!isEditing)}
               onPhotoUpload={handlePhotoUpload}
             />
-            
+
             {isEditing ? (
               <ProfileForm
                 defaultValues={{
@@ -60,9 +60,10 @@ const ProfileScreen: React.FC = () => {
           </>
         )}
       </div>
-      
-      <AccountSettings 
+
+      <AccountSettings
         onSignOut={handleSignOut}
+        onDeleteAccount={handleDeleteAccount}  // ✅ add this
         loading={loading}
       />
     </div>

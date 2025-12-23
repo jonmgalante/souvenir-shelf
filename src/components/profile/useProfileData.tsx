@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -26,7 +25,7 @@ export const useProfileData = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!user) return;
-      
+
       setLoading(true);
       try {
         const { data, error } = await supabase
@@ -34,31 +33,29 @@ export const useProfileData = () => {
           .select('name, email, photo_url')
           .eq('id', user.id)
           .single();
-        
+
         if (error) throw error;
-        
+
         const profileInfo = {
           name: data.name || user.name,
           email: data.email || user.email,
           photoUrl: data.photo_url || user.photoUrl,
         };
-        
+
         setProfileData(profileInfo);
       } catch (error) {
         console.error('Error fetching profile:', error);
-        // Use user data from auth context as fallback
         const profileInfo = {
           name: user.name || null,
           email: user.email,
           photoUrl: user.photoUrl || null,
         };
-        
         setProfileData(profileInfo);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchProfileData();
   }, [user]);
 
@@ -74,9 +71,40 @@ export const useProfileData = () => {
     }
   };
 
+  // ✅ NEW: Account deletion (calls Edge Function)
+  const handleDeleteAccount = async () => {
+    try {
+      setLoading(true);
+
+      const { error } = await supabase.functions.invoke('delete-account');
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: 'Account deleted',
+        description: 'Your account and data have been permanently deleted.',
+      });
+
+      // Ensure local session cleared
+      await signOut();
+      navigate('/auth');
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: 'Delete failed',
+        description: error?.message || 'Unable to delete account. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleProfileUpdate = async (values: ProfileFormValues) => {
     if (!user) return;
-    
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -87,28 +115,27 @@ export const useProfileData = () => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
-      
+
       if (error) throw error;
-      
-      // Update local state
+
       setProfileData({
         ...profileData,
         name: values.name,
         email: values.email,
       });
-      
+
       setIsEditing(false);
-      
+
       toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
+        title: 'Profile updated',
+        description: 'Your profile has been successfully updated.',
       });
     } catch (error: any) {
       console.error('Error updating profile:', error);
       toast({
-        title: "Update failed",
-        description: error.message || "An error occurred while updating your profile.",
-        variant: "destructive",
+        title: 'Update failed',
+        description: error.message || 'An error occurred while updating your profile.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -117,30 +144,27 @@ export const useProfileData = () => {
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!user || !event.target.files || event.target.files.length === 0) return;
-    
+
     setLoading(true);
     try {
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
       const filePath = `${user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
-      // Upload the file to Supabase storage
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
-      
+
       if (uploadError) throw uploadError;
-      
-      // Get the public URL
+
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
-      
+
       if (!data) throw new Error('Failed to get public URL');
-      
+
       const photoUrl = data.publicUrl;
-      
-      // Update the profile with the new photo URL
+
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -148,25 +172,24 @@ export const useProfileData = () => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
-      
+
       if (updateError) throw updateError;
-      
-      // Update local state
+
       setProfileData({
         ...profileData,
         photoUrl,
       });
-      
+
       toast({
-        title: "Photo updated",
-        description: "Your profile photo has been successfully updated.",
+        title: 'Photo updated',
+        description: 'Your profile photo has been successfully updated.',
       });
     } catch (error: any) {
       console.error('Error uploading photo:', error);
       toast({
-        title: "Photo upload failed",
-        description: error.message || "An error occurred while uploading your photo.",
-        variant: "destructive",
+        title: 'Photo upload failed',
+        description: error.message || 'An error occurred while uploading your photo.',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -180,6 +203,7 @@ export const useProfileData = () => {
     profileData,
     setIsEditing,
     handleSignOut,
+    handleDeleteAccount,
     handleProfileUpdate,
     handlePhotoUpload,
   };
