@@ -1,6 +1,5 @@
 import React from 'react';
-import { Settings, Info, ExternalLink, LogOut, Loader2, Trash2 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { LogOut, Loader2, Trash2 } from 'lucide-react';
 
 interface AccountSettingsProps {
   onSignOut: () => Promise<void>;
@@ -24,37 +23,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({
 
   return (
     <>
-      <h2 className="text-xl font-serif font-medium mb-4">Account Settings</h2>
-
-      <div className="space-y-2 mb-8">
-        <button
-          className="w-full flex items-center justify-between p-4 rounded-lg border border-input hover:bg-secondary/50 transition-colors text-left"
-          onClick={() => toast({
-            title: "Coming Soon",
-            description: "This feature is not yet available.",
-          })}
-        >
-          <div className="flex items-center">
-            <Settings className="h-5 w-5 mr-3 text-muted-foreground" />
-            <span>App Settings</span>
-          </div>
-          <ExternalLink className="h-4 w-4 text-muted-foreground" />
-        </button>
-
-        <button
-          className="w-full flex items-center justify-between p-4 rounded-lg border border-input hover:bg-secondary/50 transition-colors text-left"
-          onClick={() => toast({
-            title: "About SouvieShelf",
-            description: "A digital shelf for your physical souvenirs. Track, organize, and relive your travel memories.",
-          })}
-        >
-          <div className="flex items-center">
-            <Info className="h-5 w-5 mr-3 text-muted-foreground" />
-            <span>About SouvieShelf</span>
-          </div>
-          <ExternalLink className="h-4 w-4 text-muted-foreground" />
-        </button>
-      </div>
+      <h2 className="text-xl font-serif font-medium mb-4">Account</h2>
 
       <div className="space-y-3">
         <button

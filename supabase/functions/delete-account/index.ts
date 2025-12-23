@@ -40,7 +40,16 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
 
     // Admin client deletes rows + auth user
-    const admin = createClient(supabaseUrl, serviceKey);
+    const admin = createClient(supabaseUrl, serviceKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${serviceKey}`,
+        },
+      },
+      auth: {
+        persistSession: false,
+      },
+    });
 
     // Delete user data (adjust column names if yours differ)
     await admin.from("souvenirs").delete().eq("user_id", userId);
